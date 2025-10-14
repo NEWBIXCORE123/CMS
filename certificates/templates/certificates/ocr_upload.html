@@ -1,0 +1,874 @@
+{% extends "certificates/base.html" %}
+{% load static %}
+
+{% block title %} CMS - RESIDENT INFORMATION {% endblock %}
+
+{% block content %}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+:root {
+    --violet-dark: #4c1d95;
+    --violet-light: #a855f7;
+    --yellow: #FFD700;
+    --soft-bg: #f9f7fc;
+}
+
+/* Body & container */
+body { 
+    background: #f6f7fb; 
+    font-family: 'Poppins', sans-serif; 
+}
+
+/* Keep navbar uniform */
+.navbar, .navbar * {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+.container { max-width:1100px; margin:16px auto; padding:0 12px; }
+
+/* Title large like activity_logs */
+h1 {
+    font-family: 'Roboto Slab', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    text-transform: uppercase;
+    color: var(--violet-dark);
+    margin-bottom:16px;
+    text-align: center;
+}
+
+/* Grid */
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:16px;
+}
+
+/* Card style */
+.card {
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.06);
+    padding:20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover { transform:translateY(-2px); box-shadow:0 12px 25px rgba(0,0,0,0.08); }
+
+/* Inputs & selects */
+input, select, textarea {
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    font-size:14px;
+    margin-top:6px;
+    background:#f9fafb;
+    transition:border 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+input:focus, textarea:focus, select:focus {
+    outline:none;
+    border-color:var(--violet-light);
+    box-shadow:0 0 5px rgba(168,85,247,0.3);
+    background:#fff;
+}
+
+/* Buttons */
+button { 
+    padding:10px 16px; 
+    border:none; 
+    border-radius:12px; 
+    cursor:pointer; 
+    font-size:14px; 
+    font-weight:600; 
+    transition:transform 0.2s ease, box-shadow 0.2s ease; 
+}
+button.primary { background: var(--violet-dark); color:#fff; }
+button.primary:hover { background: var(--violet-light); transform:translateY(-1px); box-shadow:0 4px 10px rgba(168,85,247,0.4); }
+button.muted { background:#d1d5db; color:#374151; } /* grey button */
+button.muted:hover { background:#bcbcbc; }
+
+/* Labels */
+label { display:block; font-size:13px; color:#555; font-weight:500; margin-top:12px; }
+
+/* Image preview */
+.preview-container { 
+    width:100%; 
+    height:220px; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    border:2px dashed #cbd5e1; 
+    margin-top:6px; 
+    border-radius:12px; 
+    background:#f9fafb; 
+    overflow:hidden;
+    position: relative;
+}
+
+.preview-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;  /* Ensures full image fits without crop or zoom */
+    display:none; /* hide until loaded */
+}
+.preview-placeholder {
+    position: absolute;
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+    justify-content:center;
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+}
+
+.preview-placeholder i {
+    font-size: 40px;
+    margin-bottom:6px;
+    color:#bbb;
+}
+
+/* Footer buttons */
+.footer { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+/* Raw OCR output box */
+#rawOut { 
+    white-space:pre-wrap; 
+    font-size:13px; 
+    color:#64748b; 
+    margin-top:10px; 
+    background:#f3e8ff; 
+    padding:10px; 
+    border-radius:12px; 
+    border:1px solid #c084fc; 
+    max-height:200px;
+    overflow-y:auto;
+}
+
+/* Small OCR info */
+.ml-info { display:flex; justify-content:flex-start; align-items:center; gap:12px; margin-top:6px; font-size:12px; color:#555; }
+
+/* Checkbox styling */
+.form-check {
+    margin-top: 12px;
+}
+.form-check-input {
+    width: 16px;
+    height: 16px;
+    margin-top: 0;
+    accent-color: #bcbcbc; /* light grey */
+}
+.form-check-label {
+    font-size: 13px;
+    color: #555;
+    font-weight: 500;
+    margin-left: 8px;
+}
+.form-text {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Certificate header with back button beside */
+.cert-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom:12px;
+}
+.cert-header h3 {
+    text-transform: uppercase;  /* all caps */
+    font-size: 20px; /* slightly larger */
+    color: var(--violet-dark);
+}
+.back-btn {
+    text-decoration: none;
+    background:#d1d5db;
+    color:#374151;
+    padding:6px 12px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    display:inline-block;
+}
+.back-btn:hover { background:#bcbcbc; }
+
+.open-mobile-btn {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--violet-dark); /* same as Back to list */
+    color: #fff;
+    text-decoration: none;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    margin-top: 12px;
+}
+
+.open-mobile-btn:hover {
+    background: var(--violet-light); /* lighter violet on hover */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(168,85,247,0.4);
+}
+
+</style>
+
+<div class="container">
+  <h1>SCAN OR UPLOAD ID</h1>
+  <div class="grid">
+
+    <!-- Left: Mobile Capture / Preview -->
+    <div class="card">
+      <label style="text-align:center; display:block;">Latest captured image from mobile</label>
+      <div class="preview-container">
+    <span class="preview-placeholder">
+      <i class="fas fa-camera"></i>
+      Waiting for photo...
+    </span>
+    <img id="imgPreview" src="{% static 'placeholder.png' %}" />
+</div>
+
+      <a class="btn open-mobile-btn" style="pointer-events: none; opacity: 0.6;">
+  OPEN MOBILE CAPTURE (Disabled)
+</a>
+
+
+      <button id="send" class="primary" type="button" style="margin-top:12px;">RUN OCR</button>
+    </div>
+
+    <!-- Right: Form to autofill -->
+    <div class="card">
+      <form id="certForm" method="post" action="{% url 'certificates:create_certificate' %}">
+        {% csrf_token %}
+        <div class="cert-header">
+          <h3>CERTIFICATE DETAILS</h3>
+          <a href="{% url 'certificates:list_certificates' %}" class="back-btn">BACK TO LIST</a>
+        </div>
+
+        <label>Full Name</label>
+        <input type="text" name="full_name" id="full_name" required />
+
+        <label>Address</label>
+        <textarea name="address" id="address" rows="2" required></textarea>
+
+        <label>Age</label>
+        <input type="number" name="age" id="age" min="0" required />
+
+        <label>Occupation</label>
+        <input type="text" name="occupation" id="occupation" />
+
+        <label>Purpose</label>
+        <input type="text" name="purpose" id="purpose" />
+
+        <label id="resident-since-label" style="display:none;">Resident Since</label>
+        <input type="text" name="resident_since" id="resident_since" placeholder="e.g. 2018 or 06-30-1992" style="display:none;" />
+
+        <!-- ML Prediction display -->
+        <div id="predictedTypeBox" style="display:none; margin-top:10px; margin-bottom:6px; padding:10px; border-radius:10px; background:#f3e8ff; border:1px solid #c084fc;">
+          <strong style="color:#6b21a8;">Predicted Type:</strong> 
+          <span id="predictedTypeText" style="font-weight:600; color:#4c1d95;">—</span>
+        </div>
+
+        <label>Suggested Document Type</label>
+        <select name="document_type" id="document_type" required>
+            <option value="" disabled selected hidden>-- choose --</option>
+            <option value="clearance">Clearance</option>
+            <option value="residency">Residency</option>
+            <option value="indigency">Indigency</option>
+        </select>
+
+        <!-- Admin Bypass Checkbox -->
+        {% if user.username in 'admin1,super1' %}
+        <div class="form-check">
+          <input type="checkbox" name="bypass_barangay_check" id="bypass_barangay_check" class="form-check-input">
+          <label class="form-check-label" for="bypass_barangay_check">Bypass Barangay Address Check</label>
+          <small class="form-text text-muted">Check to allow addresses outside of Longos to be processed.</small>
+        </div>
+        {% endif %}
+
+        <div class="ml-info">
+          <small id="mlConfidence"></small>
+          <small id="ocrWarning"></small>
+        </div>
+
+        <div class="footer">
+          <button type="reset" class="muted">RESET</button>
+          <button type="submit" class="primary">SAVE AS DRAFT</button>
+        </div>
+
+        <div id="rawOut"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================
+// OCR & ML logic
+// =========================================
+const imgPreview = document.getElementById('imgPreview');
+let lastImageUrl = null;
+
+async function fetchLatestImage(){
+    try{
+        const res = await fetch("{% url 'certificates:latest_mobile_image' %}");
+        const data = await res.json();
+        if(data.ok && data.url){
+            imgPreview.src = data.url + "?t=" + new Date().getTime();
+            lastImageUrl = data.url;
+        }
+    } catch(err){ console.log(err); }
+}
+setInterval(fetchLatestImage, 3000);
+
+// Trigger input event programmatically
+function triggerInputEvent(element) {
+    const event = new Event('input', { bubbles: true });
+    element.dispatchEvent(event);
+}
+
+// OCR extraction
+document.getElementById('send').onclick = async () => {
+    if(!lastImageUrl) return Swal.fire({ icon:'warning', title:'No image available!' });
+    const btn = document.getElementById('send');
+    btn.disabled = true;
+    Swal.fire({ title:'Processing...', text:'Analyzing ID...', allowOutsideClick:false, didOpen:()=>Swal.showLoading() });
+    try {
+        const response = await fetch(lastImageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'id.jpg', { type: blob.type });
+        if (!file.type.startsWith("image/")) {
+            Swal.close();
+            btn.disabled = false;
+            return Swal.fire({ icon:"warning", title:"Invalid File", text:"Please upload a valid image." });
+        }
+        const fd = new FormData();
+        fd.append('image', file);
+        const bypassCheckbox = document.getElementById('bypass_barangay_check');
+        if (bypassCheckbox) {
+            fd.append('bypass_barangay_check', bypassCheckbox.checked);
+        }
+        const res = await fetch('{% url "certificates:ocr_extract_api" %}', {
+            method:'POST',
+            body:fd,
+            headers:{'X-CSRFToken':'{{ csrf_token }}'}
+        });
+        const js = await res.json();
+        Swal.close();
+        if(!js.ok) {
+            btn.disabled = false;
+            return Swal.fire({ icon:'warning', title:'Invalid Address', text: js.warning || 'OCR failed to process the ID.' });
+        }
+        // Clear any previous warning
+        const warnBox = document.getElementById('ocrWarning');
+        warnBox.textContent = '';
+        warnBox.style.display = 'none';
+        if(js.warning && !(bypassCheckbox && bypassCheckbox.checked)){
+            warnBox.textContent = js.warning;
+            warnBox.style.display = 'block';
+            Swal.fire({ icon:'warning', title:'Invalid Address', text: js.warning });
+            btn.disabled = false;
+            return;
+        }
+        // Reset manual select flag to allow prediction
+        manualSelectChange = false;
+        // Autofill fields
+        const fields = [
+            { id: 'full_name', value: js.full_name || '', validate: isValidFullName },
+            { id: 'address', value: js.address || '', validate: (val) => val.trim().length >= 10 && val.includes(' ') },
+            { id: 'age', value: js.age || '', validate: (val) => /^\d+$/.test(val) && parseInt(val) > 0 && parseInt(val) <= 120 },
+            { id: 'occupation', value: js.occupation || '', validate: (val) => !val || (namePattern.test(val.trim()) && val.trim().length >= 4) },
+            { id: 'purpose', value: js.purpose || '', validate: (val) => !val || (namePattern.test(val.trim()) && val.trim().length >= 4) },
+            { id: 'resident_since', value: js.resident_since || '', validate: (val) => !val || (residentSincePattern.test(val.trim()) && isValidYear(val.trim())) }
+        ];
+        fields.forEach(field => {
+            const element = document.getElementById(field.id);
+            element.value = field.value;
+            if (field.validate) {
+                markValidity(element, field.validate(field.value));
+            }
+            // Trigger input event for relevant fields
+            if (['age', 'occupation', 'purpose', 'resident_since'].includes(field.id)) {
+                triggerInputEvent(element);
+            }
+        });
+        let rawText = 'Detected ID: '+(js.id_type||'Unknown')+'\n\nRaw OCR:\n'+(js.raw_lines||[]).join('\n');
+        if (!js.occupation || !js.purpose) {
+            rawText += '\n\nNote: Occupation or Purpose not detected. Please enter manually if needed for accurate prediction.';
+        }
+        document.getElementById('rawOut').textContent = rawText;
+        // Force prediction after autofill
+        await fetchPrediction();
+    } catch(e){
+        Swal.close();
+        Swal.fire({ icon:'error', title:'Network Error', text:e.message });
+    }
+    btn.disabled = false;
+};
+
+// =========================================
+// Field validation + color feedback
+// =========================================
+const fullNameInput = document.getElementById('full_name');
+const addressInput = document.getElementById('address');
+const ageInput = document.getElementById('age');
+const occupationInput = document.getElementById('occupation');
+const purposeInput = document.getElementById('purpose');
+const residentSinceInput = document.getElementById('resident_since');
+const bypassCheckbox = document.getElementById('bypass_barangay_check');
+const namePattern = /^[a-zA-Z\s.'-]+$/;
+const addressPattern = /^[a-zA-Z0-9\s,.'-]+$/;
+const residentSincePattern = /^(?:\d{4}|\d{1,2}-\d{1,2}-\d{4})$/;
+
+function isValidYear(value) {
+    const currentYear = 2025;
+    const yearMatch = value.match(/\d{4}$/);
+    if (yearMatch) {
+        const year = parseInt(yearMatch[0]);
+        return year <= currentYear;
+    }
+    return true; // If no year is found, assume valid for pattern check
+}
+
+function markValidity(el, isValid){
+    el.style.border = isValid ? '2px solid #22c55e' : '2px solid #ef4444';
+    el.style.backgroundColor = isValid ? '#ecfdf5' : '#fee2e2';
+}
+function clearStyles(){
+    [fullNameInput,addressInput,ageInput,occupationInput,purposeInput,residentSinceInput].forEach(el=>{
+        el.style.border='1px solid #e5e7eb';
+        el.style.backgroundColor='#f9fafb';
+    });
+}
+
+// Improved full name validation
+function isValidFullName(name) {
+    const trimmed = name.trim();
+    if (!namePattern.test(trimmed)) return false;
+    const words = trimmed.split(/\s+/);
+    return words.length >= 2 &&
+           trimmed.length >= 6 &&
+           words[0].length >= 2 &&
+           words.slice(1).every(word => word.length >= 3 || /^[a-zA-Z](\.)?$/.test(word));
+}
+
+fullNameInput.addEventListener('input', function(){
+    const cleaned = this.value.replace(/[^a-zA-Z\s.'-]/g, '');
+    if (this.value !== cleaned) {
+        this.value = cleaned;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Name',
+            text: 'Full name must contain letters, spaces, hyphens, apostrophes, or periods only!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+    markValidity(this, isValidFullName(this.value));
+});
+
+ageInput.addEventListener('input', function(){
+    const cleaned = this.value.replace(/[^0-9]/g, '');
+    if (this.value !== cleaned) {
+        this.value = cleaned;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Age',
+            text: 'Numbers only!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+    const num = parseInt(this.value);
+    markValidity(this, num > 0 && num <= 120);
+    fetchPrediction();
+});
+
+occupationInput.addEventListener('input', function(){
+    const cleaned = this.value.replace(/[^a-zA-Z\s.'-]/g, '');
+    if (this.value !== cleaned) {
+        this.value = cleaned;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Occupation',
+            text: 'Letters, spaces, hyphens, apostrophes, or periods only!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+    const trimmed = this.value.trim();
+    markValidity(this, !trimmed || (namePattern.test(trimmed) && trimmed.length >= 4));
+    fetchPrediction();
+});
+
+purposeInput.addEventListener('input', function(){
+    const cleaned = this.value.replace(/[^a-zA-Z\s.'-]/g, '');
+    if (this.value !== cleaned) {
+        this.value = cleaned;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Purpose',
+            text: 'Letters, spaces, hyphens, apostrophes, or periods only!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+    const trimmed = this.value.trim();
+    markValidity(this, !trimmed || (namePattern.test(trimmed) && trimmed.length >= 4));
+    fetchPrediction();
+});
+
+residentSinceInput.addEventListener('input', function(){
+    const cleaned = this.value.replace(/[^0-9-]/g, '');
+    if (this.value !== cleaned) {
+        this.value = cleaned;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Resident Since',
+            text: 'Resident Since must contain numbers and hyphens only (e.g., 2018 or 06-30-1992)!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+    const trimmed = this.value.trim();
+    markValidity(this, !trimmed || (residentSincePattern.test(trimmed) && isValidYear(trimmed)));
+});
+
+residentSinceInput.addEventListener('blur', function() {
+    const trimmed = this.value.trim();
+    const docType = document.getElementById('document_type').value;
+    if (docType === 'residency' && !trimmed) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Resident Since',
+            text: 'Please enter the Resident Since field for residency documents.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        markValidity(this, false);
+    } else if (trimmed && (!residentSincePattern.test(trimmed) || !isValidYear(trimmed))) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Resident Since',
+            text: 'Resident Since must be a valid year (e.g., 2018) or date (e.g., 06-30-1992) not in the future.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        markValidity(this, false);
+    } else if (trimmed) {
+        markValidity(this, residentSincePattern.test(trimmed) && isValidYear(trimmed));
+    }
+});
+
+// Address validation (allow numbers at start, reject numbers-only)
+addressInput.addEventListener('input', function() {
+    const cleaned = this.value.replace(/[^a-zA-Z0-9\s,.'-]/g, '');
+    if (this.value !== cleaned) {
+        this.value = cleaned;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Address',
+            text: 'Address can only contain letters, numbers, spaces, commas, hyphens, apostrophes, or periods!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+
+    const trimmed = this.value.trim();
+    const isNumbersOnly = /^[0-9\s]+$/.test(trimmed);
+    const hasLetter = /[a-zA-Z]/.test(trimmed);
+
+    // Valid if long enough and has at least one letter
+    const valid = trimmed.length >= 5 && hasLetter;
+    markValidity(this, valid);
+
+    // 🔹 Only show warning after user typed at least 4 characters
+    if (trimmed.length >= 5 && isNumbersOnly) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Address',
+            text: 'Address cannot be numbers only!',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+});
+
+// Age validation - reject letters
+ageInput.addEventListener('input', function() {
+    if (/[a-zA-Z]/.test(this.value)) {
+        this.value = this.value.replace(/[a-zA-Z]/g, '');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Age',
+            text: 'Age must contain numbers only!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+    const num = parseInt(this.value);
+    markValidity(this, num > 0 && num <= 120);
+});
+
+// Occupation - cannot be empty or less than 4 letters
+occupationInput.addEventListener('blur', function() {
+    const trimmed = this.value.trim();
+    if (!trimmed) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Occupation',
+            text: 'Please enter the occupation field.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        markValidity(this, false);
+    } else if (trimmed.length < 4) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Occupation',
+            text: 'Occupation must be at least 4 characters long.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        markValidity(this, false);
+    }
+});
+
+// Purpose - cannot be empty or less than 4 letters
+purposeInput.addEventListener('blur', function() {
+    const trimmed = this.value.trim();
+    if (!trimmed) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Purpose',
+            text: 'Please enter the purpose field.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        markValidity(this, false);
+    } else if (trimmed.length < 4) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Purpose',
+            text: 'Purpose must be at least 4 characters long.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        markValidity(this, false);
+    }
+});
+
+// Final Submit Validation Check
+document.getElementById('certForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+
+    const f = fullNameInput.value.trim(),
+          a = addressInput.value.trim(),
+          ag = ageInput.value.trim(),
+          o = occupationInput.value.trim(),
+          p = purposeInput.value.trim(),
+          r = residentSinceInput.value.trim(),
+          docType = document.getElementById('document_type').value;
+
+    // === Empty Field Check ===
+    if (!f || !a || !ag || !o || !p || (docType === 'residency' && !r)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Fields',
+            text: 'Please fill in all required fields before proceeding.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        [fullNameInput, addressInput, ageInput, occupationInput, purposeInput, residentSinceInput].forEach(el => {
+            if (!el.value.trim() && (el.id !== 'resident_since' || docType === 'residency')) markValidity(el, false);
+        });
+        return;
+    }
+
+    // === Field Validations ===
+    if (!isValidFullName(f)) {
+        markValidity(fullNameInput, false);
+        return Swal.fire({
+            icon: 'error',
+            title: 'Invalid Full Name',
+            text: 'Full name must have at least two words (first name 2+ chars, others 3+).'
+        });
+    }
+
+    if (a.length < 10 || !a.includes(' ') || !addressPattern.test(a) || /^\d+$/.test(a)) {
+        // prevent numbers-only address
+        markValidity(addressInput, false);
+        return Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Address',
+            text: 'Address must not be numbers only and should include letters and spaces.'
+        });
+    }
+
+    if (!/^\d+$/.test(ag) || parseInt(ag) <= 0 || parseInt(ag) > 120) {
+        markValidity(ageInput, false);
+        return Swal.fire({
+            icon: 'error',
+            title: 'Invalid Age',
+            text: 'Age must be a number between 1 and 120.'
+        });
+    }
+
+    if (!o.trim() || !namePattern.test(o) || o.length < 4) {
+        markValidity(occupationInput, false);
+        return Swal.fire({
+            icon: 'error',
+            title: 'Invalid Occupation',
+            text: 'Occupation must be at least 4 characters long and contain only valid letters or symbols.'
+        });
+    }
+
+    if (!p.trim() || !namePattern.test(p) || p.length < 4) {
+        markValidity(purposeInput, false);
+        return Swal.fire({
+            icon: 'error',
+            title: 'Invalid Purpose',
+            text: 'Purpose must be at least 4 characters long and contain only valid letters or symbols.'
+        });
+    }
+
+    if (docType === 'residency' && (!r || !residentSincePattern.test(r) || !isValidYear(r))) {
+        markValidity(residentSinceInput, false);
+        return Swal.fire({
+            icon: 'error',
+            title: 'Invalid Resident Since',
+            text: 'Resident Since must be a valid year (e.g., 2018) or date (e.g., 06-30-1992) not in the future.'
+        });
+    }
+
+    // === Confirmation Alert ===
+    const confirmResult = await Swal.fire({
+        icon: 'question',
+        title: 'Double Check Your Information',
+        html: `
+            <div style="text-align:left; font-size:14px;">
+                <p>Please review your information before saving:</p>
+                <ul style="list-style-type: disc; margin-left:20px;">
+                    <li>Check for <strong>misspelled names</strong>.</li>
+                    <li>Ensure <strong>address</strong> details are accurate.</li>
+                    <li>Verify <strong>age</strong>, <strong>occupation</strong>, <strong>purpose</strong>, and <strong>resident since</strong> (if applicable).</li>
+                </ul>
+                <p style="margin-top:10px; color:#6b7280;">Once saved as draft, you can still edit later.</p>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#4c1d95',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, save as draft',
+        cancelButtonText: 'Review again'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    // === Proceed to save if confirmed ===
+    try {
+        const formData = new FormData(document.getElementById('certForm'));
+        if (bypassCheckbox) {
+            formData.append('bypass_barangay_check', bypassCheckbox.checked);
+        }
+
+        const response = await fetch('{% url "certificates:create_certificate" %}', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Draft Saved',
+                text: `Entry saved successfully with ID: ${data.id}`,
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = '{% url "certificates:list_certificates" %}';
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Save Failed',
+                text: data.error || 'An error occurred while saving the draft.'
+            });
+        }
+    } catch (err) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Network Error',
+            text: 'Failed to save the draft. Please try again.'
+        });
+    }
+});
+
+// Reset clears styles and prediction state
+document.querySelector('#certForm button[type="reset"]').addEventListener('click', () => {
+    clearStyles();
+    document.getElementById('mlConfidence').textContent = '';
+    document.getElementById('ocrWarning').textContent = '';
+    document.getElementById('ocrWarning').style.display = 'none';
+    document.getElementById('predictedTypeBox').style.display = 'none';
+    document.getElementById('predictedTypeText').textContent = '—';
+    document.getElementById('document_type').value = '';
+    manualSelectChange = false;
+    const bypassCheckbox = document.getElementById('bypass_barangay_check');
+    if (bypassCheckbox) {
+        bypassCheckbox.checked = false;
+    }
+    document.getElementById('rawOut').textContent = '';
+    lastImageUrl = null;
+    document.getElementById('imgPreview').src = '{% static "placeholder.png" %}';
+    toggleResidentSince();
+});
+
+
+
+["age", "occupation", "purpose"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener("input", () => {
+            clearTimeout(el._mlTimeout);
+            el._mlTimeout = setTimeout(fetchPrediction, 500);
+        });
+    }
+});
+
+const residentSinceField = document.getElementById("resident_since");
+const residentSinceLabel = document.getElementById("resident-since-label");
+function toggleResidentSince(){
+    if (docType && docType.value === "residency") {
+        residentSinceField.style.display = "block";
+        residentSinceLabel.style.display = "block";
+    } else {
+        residentSinceField.style.display = "none";
+        residentSinceLabel.style.display = "none";
+        residentSinceField.value = "";
+    }
+}
+document.addEventListener("DOMContentLoaded", toggleResidentSince);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const imgPreview = document.getElementById('imgPreview');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+
+    // Simulate waiting for photo
+    setTimeout(() => {
+        const photoUrl = "{% static 'placeholder.png' %}"; // Replace with real captured photo URL if available
+        imgPreview.src = photoUrl;
+        imgPreview.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
+    }, 3000); // 5 seconds delay
+});
+</script>
+{% endblock %}

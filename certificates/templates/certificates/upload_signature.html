@@ -1,0 +1,232 @@
+{% extends "certificates/base.html" %}
+{% block title %} CMS - MANAGE SIGNATURE {% endblock %}
+
+{% block content %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+:root {
+    --violet-dark: #4c1d95;
+    --violet-light: #a855f7;
+    --yellow: #FFD700;
+    --soft-bg: #f9f7fc;
+}
+
+body { background: var(--soft-bg); font-family: 'Poppins', sans-serif; }
+
+.signature-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+    padding: 16px;
+}
+
+.signature-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    padding: 24px;
+    width: 100%;
+    max-width: 500px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+     font-family: 'Roboto', sans-serif; 
+}
+.signature-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+
+.signature-card h3 {
+    color: var(--violet-dark);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    font-family: 'Roboto', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+input[type=file] {
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 14px;
+}
+
+#signaturePreview {
+    max-width: 100%;
+    max-height: 150px;
+    border: 2px dashed var(--violet-dark);
+    border-radius: 12px;
+    padding: 6px;
+    display: none;
+    margin-top: 10px;
+    background: #f9fafb;
+}
+
+.btn-upload {
+    width: 100%;
+    padding: 12px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--violet-light), var(--violet-dark));
+    color: #fff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-upload:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(139,92,246,0.4);
+}
+
+.text-muted { font-size: 0.9rem; text-align: center; margin-top: 12px; }
+.form-check-label { margin-left: 8px; }
+.alert { margin-bottom: 20px; }
+</style>
+
+<div class="signature-container">
+  <div class="signature-card">
+    <h3>UPLOAD DIGITAL SIGNATURE</h3>
+
+    {% if form.instance.signature_image %}
+        <p class="text-info">Current signature: <img src="{{ form.instance.signature_image.url }}" alt="Signature" style="max-height: 50px;"></p>
+    {% else %}
+        <p class="text-warning">No signature image uploaded. Upload a PNG image or enable bypass for manual signing.</p>
+    {% endif %}
+    <p class="text-info">Bypass digital signature: {{ form.instance.bypass_digital_signature|yesno:"Enabled,Disabled" }}</p>
+
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate data-has-signature="{{ form.instance.signature_image|yesno:'true,false' }}">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="id_signature_image" class="form-label">Choose your signature</label>
+        {{ form.signature_image }}
+        <div class="invalid-feedback">
+          Please upload a valid PNG signature (max 2MB).
+        </div>
+      </div>
+
+      <div class="mb-3 form-check">
+        {{ form.bypass_digital_signature }}
+        <label class="form-check-label" for="id_bypass_digital_signature">
+          Bypass digital signature (leave space for manual signing)
+        </label>
+      </div>
+
+      <!-- Live Preview -->
+      <div class="mb-3 text-center">
+        <img id="signaturePreview" src="#" alt="Signature Preview">
+      </div>
+
+      <button type="submit" class="btn-upload">Upload</button>
+    </form>
+
+    <p class="text-muted">
+      Accepted format: <strong>PNG only</strong>. Max size: 2MB.
+      Check 'Bypass digital signature' to generate certificates with space for manual signing.
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Get existing signature status from data attribute
+const form = document.querySelector('.needs-validation');
+const hasExistingSignature = form && form.dataset.hasSignature === 'true';
+
+// Bootstrap 5 validation
+(() => {
+  'use strict';
+  const forms = document.querySelectorAll('.needs-validation');
+  Array.from(forms).forEach(form => {
+    form.addEventListener('submit', event => {
+      const bypassCheckbox = document.getElementById('id_bypass_digital_signature');
+      const fileInput = document.getElementById('id_signature_image');
+      if (!bypassCheckbox || !fileInput) {
+        console.warn('Form elements missing: bypassCheckbox or fileInput not found.');
+        event.preventDefault();
+        event.stopPropagation();
+        Swal.fire({ icon: 'error', title: 'Form Error', text: 'Form elements are missing. Please contact support.', confirmButtonColor: '#6d28d9' });
+        return;
+      }
+      // Only require file input if bypass is off and no existing signature
+      if (!bypassCheckbox.checked && !fileInput.files.length && !hasExistingSignature) {
+        fileInput.setCustomValidity('Signature image is required unless bypassing digital signature.');
+      } else {
+        fileInput.setCustomValidity('');
+      }
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    }, false);
+  });
+})();
+
+// Validate PNG + 2MB & show preview
+function validateSignature(event) {
+  const input = event.target;
+  const file = input.files[0];
+  const preview = document.getElementById('signaturePreview');
+  const bypassCheckbox = document.getElementById('id_bypass_digital_signature');
+
+  if (!preview || !bypassCheckbox) {
+    console.warn('Preview or bypassCheckbox element missing.');
+    return;
+  }
+
+  if (file && !bypassCheckbox.checked) {
+    if (file.type !== 'image/png') {
+      Swal.fire({ icon: 'error', title: 'Invalid File', text: 'Only PNG images allowed.', confirmButtonColor: '#6d28d9' });
+      input.value = '';
+      preview.style.display = 'none';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      Swal.fire({ icon: 'warning', title: 'File Too Large', text: 'Signature must not exceed 2MB.', confirmButtonColor: '#6d28d9' });
+      input.value = '';
+      preview.style.display = 'none';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.src = '#';
+    preview.style.display = 'none';
+  }
+}
+
+// Toggle file input requirement based on bypass checkbox and existing signature
+document.addEventListener('DOMContentLoaded', () => {
+  const bypassCheckbox = document.getElementById('id_bypass_digital_signature');
+  const fileInput = document.getElementById('id_signature_image');
+  if (!bypassCheckbox || !fileInput) {
+    console.warn('Bypass checkbox or file input element not found.');
+    return;
+  }
+
+  // Set initial state
+  if (bypassCheckbox.checked || hasExistingSignature) {
+    fileInput.removeAttribute('required');
+  } else {
+    fileInput.setAttribute('required', 'required');
+  }
+
+  bypassCheckbox.addEventListener('change', function() {
+    if (this.checked || hasExistingSignature) {
+      fileInput.removeAttribute('required');
+      if (this.checked) {
+        fileInput.value = '';
+        document.getElementById('signaturePreview').style.display = 'none';
+      }
+    } else {
+      fileInput.setAttribute('required', 'required');
+    }
+  });
+
+  fileInput.addEventListener('change', validateSignature);
+});
+</script>
+{% endblock %}

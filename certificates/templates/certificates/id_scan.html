@@ -1,0 +1,36 @@
+{% extends "certificates/base.html" %}
+{% block content %}
+<h2>Scan Valid ID</h2>
+<p>Allow camera access, capture the ID, and we'll try to extract the details to autofill your form.</p>
+<video id="cam" autoplay playsinline style="width:100%;max-width:640px;border:1px solid #ccc;border-radius:8px"></video>
+<div style="margin:10px 0;">
+  <button id="snap" class="btn btn-primary">Capture</button>
+</div>
+<canvas id="c" style="display:none"></canvas>
+<pre id="out" style="white-space:pre-wrap;background:#111;color:#ddd;padding:10px;border-radius:8px"></pre>
+<script>
+(async()=>{
+  const cam = document.getElementById('cam');
+  try {
+    cam.srcObject = await navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}});
+  } catch(e) {
+    alert("Camera error: " + e);
+  }
+  document.getElementById('snap').onclick = async ()=>{
+    const c = document.getElementById('c'), x = c.getContext('2d');
+    c.width = cam.videoWidth; c.height = cam.videoHeight;
+    x.drawImage(cam,0,0);
+    const blob = await new Promise(r=>c.toBlob(r, 'image/jpeg', 0.92));
+    const fd = new FormData(); fd.append('image', blob, 'id.jpg');
+    const res = await fetch("{% url 'id_extract_api' %}", {method:'POST', body: fd, headers:{'X-CSRFToken': '{{ csrf_token }}'}});
+    const j = await res.json();
+    document.getElementById('out').textContent = JSON.stringify(j, null, 2);
+    if (j.ok && j.fields){
+      // Attempt cross-page fill via localStorage (used by create form)
+      localStorage.setItem('ocr_fields', JSON.stringify(j.fields));
+      alert("Fields captured. Go to Create Certificate and click 'Auto-fill from ID'.");
+    }
+  };
+})();
+</script>
+{% endblock %}

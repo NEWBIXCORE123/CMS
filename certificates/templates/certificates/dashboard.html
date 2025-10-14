@@ -1,0 +1,229 @@
+{% extends "certificates/base.html" %}
+{% load static %}
+
+{% block title %} CMS - DASHBOARD {% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+
+        <!-- Total Certificates -->
+        <div class="stat-card shadow-lg total-card">
+            <div class="card-body text-center">
+                <h4 class="card-title">TOTAL CERTIFICATES</h4>
+                <span class="display-3 fw-bold text-yellow">{{ total_certs|default:"0" }}</span>
+                <div><small class="text-light">(Generated + Reissued)</small></div>
+            </div>
+        </div>
+
+        <!-- Certificates by Type -->
+        <div class="type-card">
+            <div class="card-body">
+                <h4 class="card-title section-title">
+                    <i class="bi bi-files"></i> Certificates by Type
+                </h4>
+                <ul class="list-group list-group-flush">
+                    {% for c in cert_counts %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center shadow-sm">
+                            <span>{{ c.document_type|title }}</span>
+                            <span class="badge bg-yellow">{{ c.total }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">No certificates yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Certificates -->
+    <div class="card mt-5 shadow-lg rounded-4 recent-card">
+        <div class="card-body">
+            <h4 class="card-title section-title mb-3">Recent Certificates</h4>
+            
+            <!-- Responsive Table -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Full Name</th>
+                            <th class="text-center">Type</th>
+                            <th class="text-center">Date Created</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cert in recent_certs %}
+                            <tr>
+                                <td class="text-center">{{ cert.full_name }}</td>
+                                <td class="text-center">{{ cert.document_type|title }}</td>
+                                <td class="text-center">{{ cert.created_at|date:"M d, Y H:i" }}</td>
+                                <td class="text-center">{{ cert.status|upper }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'certificates:certificate_detail' cert.pk %}" class="btn btn-sm btn-violet">View</a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5" class="text-center">No recent certificates.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center mt-3">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm custom-pagination">
+                        {% if recent_certs.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ recent_certs.previous_page_number }}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                        {% endif %}
+
+                        {% for num in recent_certs.paginator.page_range %}
+                            {% if num == 1 or num == recent_certs.paginator.num_pages or num >= recent_certs.number|add:-2 and num <= recent_certs.number|add:2 %}
+                                <li class="page-item {% if recent_certs.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% elif num == recent_certs.number|add:-3 or num == recent_certs.number|add:3 %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if recent_certs.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ recent_certs.next_page_number }}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% block scripts %}
+<style>
+    :root {
+        --violet-dark: #4c1d95;
+        --violet-light: #a855f7;
+        --yellow: #FFD700;
+        --soft-bg: #f9f7fc;
+    }
+
+    /* Stats Row */
+    .stats-row {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    /* Stat card */
+    .stat-card {
+        flex: 1;
+        min-width: 250px;
+        border-radius: 20px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+
+    /* 🌈 Soft Gradient for Total Certificates Card */
+    .total-card {
+        background: linear-gradient(135deg, #6d28d9, #a855f7, #fcd34d);
+        box-shadow: 0 8px 16px rgba(76, 29, 149, 0.25);
+    }
+
+    .stat-card .card-title {
+        font-size: 1.1rem;
+        margin-bottom: .5rem;
+        font-weight: 600;
+        color: #fff;
+    }
+    .display-3 { font-size: 2.5rem; color: var(--yellow); }
+
+    /* Certificates by Type */
+    .type-card {
+        flex: 1;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #f3e8ff, #ede9fe);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        padding: 1.5rem 2rem;
+    }
+    .type-card .card-title {
+        color: var(--violet-dark);
+        font-weight: bold;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .list-group-item {
+        border: none;
+        background: #fff;
+        border-radius: 12px;
+        margin-bottom: .5rem;
+        padding: .75rem 1rem;
+        display: flex;
+        justify-content: space-between;
+    }
+    .badge.bg-yellow { background-color: var(--yellow); color: #000; }
+
+    /* Table */
+    .recent-card { background: var(--soft-bg); border: none; }
+    .table thead tr {
+        background: linear-gradient(90deg, #4c1d95, #6d28d9, #a855f7);
+        color: #fff;
+    }
+    .table tbody td { color: #000; font-weight: 600; }
+    .btn-violet {
+        background: var(--violet-dark);
+        color: #fff;
+        border-radius: 20px;
+        padding: .4rem 1.2rem;
+        transition: 0.3s;
+        font-size: 0.85rem;
+    }
+    .btn-violet:hover { background: var(--yellow); color: #000; }
+
+    /* Pagination */
+    .custom-pagination .page-item { margin: 0 4px; }
+    .custom-pagination .page-link {
+      border: none; border-radius: 50px; padding: 8px 14px;
+      font-size: 0.9rem; font-weight: 500;
+      color: var(--violet-dark); background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: all 0.25s ease;
+    }
+    .custom-pagination .page-link:hover {
+      background: var(--violet-light); color: #fff; transform: translateY(-2px);
+    }
+    .custom-pagination .page-item.active .page-link {
+      background: linear-gradient(135deg, var(--violet-dark), var(--violet-light));
+      color: #fff;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .stats-row { flex-direction: column; gap: 1rem; }
+        .stat-card, .type-card { flex: 1 1 100%; padding: 1.2rem; }
+        .display-3 { font-size: 2rem; }
+    }
+</style>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "certificates/base.html" %}
+{% load static %}
+
+{% block title %} CMS- CERTIFICATE VERIFICATION {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <h2 class="mb-4 section-title">📄 Certificate Verification</h2>
+
+    <div class="card verify-card mx-auto shadow-lg rounded-4 p-4">
+
+        <!-- Status Badge -->
+        {% if valid %}
+            <div class="alert alert-success d-flex align-items-center justify-content-center fw-bold mb-2" role="alert">
+                ✅ Certificate is <span class="ms-2">Valid</span>
+            </div>
+        {% elif expired %}
+            <div class="alert alert-warning d-flex align-items-center justify-content-center fw-bold mb-2" role="alert">
+                ⚠️ Certificate <span class="ms-2">Expired</span>
+            </div>
+        {% else %}
+            <div class="alert alert-danger d-flex align-items-center justify-content-center fw-bold mb-2" role="alert">
+                ❌ Certificate <span class="ms-2">Invalid</span>
+            </div>
+        {% endif %}
+
+        <!-- Original / Reissued Badge -->
+        {% if cert.reissue_date %}
+            <span class="badge bg-warning text-dark mb-4">Reissued</span>
+        {% else %}
+            <span class="badge bg-info text-white mb-4">Original</span>
+        {% endif %}
+
+        <!-- Certificate Details -->
+        <dl class="row mt-3 mb-4">
+            <dt class="col-sm-4 text-violet-dark">Name:</dt>
+            <dd class="col-sm-8">{{ cert.full_name }}</dd>
+
+            <dt class="col-sm-4 text-violet-dark">Document Type:</dt>
+            <dd class="col-sm-8">{{ cert.get_document_type_display }}</dd>
+
+            <dt class="col-sm-4 text-violet-dark">Purpose:</dt>
+            <dd class="col-sm-8">{{ cert.purpose }}</dd>
+
+            <dt class="col-sm-4 text-violet-dark">Date Issued:</dt>
+            <dd class="col-sm-8">{{ cert.created_at|date:"F d, Y" }}</dd>
+
+            {% if cert.reissue_date %}
+            <dt class="col-sm-4 text-violet-dark">Date Reissued:</dt>
+            <dd class="col-sm-8">{{ cert.reissue_date|date:"F d, Y" }}</dd>
+            {% endif %}
+
+            <dt class="col-sm-4 text-violet-dark">Expiration Date:</dt>
+            <dd class="col-sm-8">{{ cert.expiration_date|date:"F d, Y" }}</dd>
+        </dl>
+
+    </div>
+</div>
+
+{% block scripts %}
+<style>
+    :root {
+        --violet-dark: #4c1d95;
+        --violet-light: #a855f7;
+        --soft-bg: #f9f7fc;
+    }
+
+    .verify-card {
+        background: linear-gradient(145deg, #f9f7fc, #ffffff);
+        border: none;
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 700px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .verify-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+    }
+
+    .section-title {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: var(--violet-dark);
+        letter-spacing: 0.5px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    dt {
+        font-weight: 600;
+        color: var(--violet-dark);
+    }
+
+    dd {
+        margin-bottom: 1rem;
+    }
+
+    .alert {
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 576px) {
+        .verify-card { padding: 1.5rem; }
+        .section-title { font-size: 1.4rem; text-align: center; }
+        dd { margin-bottom: 0.75rem; }
+    }
+</style>
+{% endblock %}
+{% endblock %}

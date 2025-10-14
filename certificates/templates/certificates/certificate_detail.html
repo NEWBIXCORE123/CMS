@@ -1,0 +1,157 @@
+{% extends "certificates/base.html" %}
+{% load static %}
+
+{% block title %} CMS - CERTIFICATE DETAILS {% endblock %}
+{% block content %}
+<div class="container py-5">
+
+  <!-- Page Header -->
+  <div class="text-center mb-5">
+    <h2 class="activity-header-centered">
+      CERTIFICATE DETAILS
+    </h2>
+    <p class="text-muted fs-6">View and manage this certificate record</p>
+  </div>
+
+  <!-- Certificate Card -->
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-5">
+
+      {% if cert %}
+      <div class="row align-items-center">
+        <!-- Left: Certificate Info -->
+        <div class="col-lg-7 mb-4 mb-lg-0">
+          <h3 class="fw-bold text-dark mb-2">{{ cert.full_name }}</h3>
+          <p class="mb-3">
+            <span class="badge bg-primary me-2 fs-6">{{ cert.get_document_type_display }}</span>
+            <span class="badge 
+              {% if cert.status == 'COMPLETED' %}bg-success
+              {% elif cert.status == 'PENDING' %}bg-warning text-dark
+              {% else %}bg-secondary{% endif %} fs-6">
+              {{ cert.get_status_display }}
+            </span>
+          </p>
+
+          <!-- Actions -->
+          {% if cert.pk %}
+          <div class="d-flex flex-wrap gap-3 mt-4 align-items-center">
+
+            {% if not cert.generated_docx %}
+            <a class="btn btn-primary action-btn shadow-sm d-flex align-items-center justify-content-center gap-2"
+               href="{% url 'certificates:generate_certificate' cert.pk %}">
+              <i class="bi bi-cpu"></i> Generate Certificate
+            </a>
+            {% else %}
+            <a class="btn btn-outline-dark action-btn shadow-sm d-flex align-items-center justify-content-center gap-2"
+               href="{% url 'certificates:certificate_docx' cert.pk %}" target="_blank">
+              <i class="bi bi-filetype-docx"></i> Download DOCX
+            </a>
+            <button class="btn btn-warning action-btn shadow-sm d-flex align-items-center justify-content-center gap-2"
+                    id="reissueBtn" data-cert-id="{{ cert.id }}">
+              <i class="bi bi-arrow-repeat"></i> Reissue
+            </button>
+            {% endif %}
+
+            <a class="btn btn-outline-primary action-btn shadow-sm d-flex align-items-center justify-content-center gap-2"
+               href="{% url 'certificates:list_certificates' %}">
+              <i class="bi bi-arrow-left-circle"></i> Back to List
+            </a>
+
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Right: QR Code -->
+        <div class="col-lg-5 text-center">
+          {% if cert.verification_token %}
+          <div class="border rounded-3 shadow-sm p-3 bg-light mb-4 qr-box">
+            <img src="{% url 'certificates:certificate_qr' cert.verification_token %}" 
+                 alt="QR Code" class="img-fluid rounded" style="max-height: 200px;">
+            <p class="mt-3 fw-semibold text-secondary">Scan to Verify</p>
+          </div>
+          {% else %}
+          <div class="border rounded-3 shadow-sm p-4 bg-light mb-4">
+            <i class="bi bi-exclamation-circle text-danger fs-1 mb-2"></i>
+            <p class="fw-medium text-muted mb-0">QR not available. Please generate the certificate first.</p>
+          </div>
+          {% endif %}
+        </div>
+
+      {% else %}
+      <div class="text-center text-danger py-5">
+        <i class="bi bi-exclamation-triangle-fill fs-1 mb-3"></i>
+        <p class="fs-5 fw-semibold">Certificate not found.</p>
+        <a class="btn btn-outline-primary btn-lg mt-3 px-4" href="{% url 'list_certificates' %}">
+          <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const reissueBtn = document.getElementById("reissueBtn");
+  if (reissueBtn) {
+    reissueBtn.addEventListener("click", function() {
+      const certId = this.getAttribute("data-cert-id");
+      Swal.fire({
+        title: "Reissue Certificate?",
+        text: "This will regenerate the certificate file and update the issue date.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Yes, reissue it",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#4c1d95",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: "Processing...",
+            html: "Please wait while the certificate is being reissued.",
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            showConfirmButton: false
+          });
+          window.location.href = `/certificates/reissue/${certId}/`;
+        }
+      });
+    });
+  }
+});
+</script>
+
+<style>
+.activity-header-centered {
+  font-family: 'Roboto Slab', serif;
+  font-weight: 700;
+  font-size: 2rem;
+  text-transform: uppercase;
+  color: #4c1d95;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.action-btn {
+  min-width: 170px;
+  font-weight: 600;
+  padding: 0.7rem 1.2rem;
+  border-radius: 10px;
+  text-align: center;
+}
+.qr-box {
+  transition: transform 0.3s ease;
+}
+.qr-box:hover {
+  transform: scale(1.05);
+}
+.btn {
+  transition: all 0.25s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+</style>
+
+{% endblock %}

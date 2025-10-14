@@ -1,0 +1,326 @@
+{% extends "certificates/base.html" %}
+{% block title %} CMS - REPORTS {% endblock %}
+{% load static %}
+{% block content %}
+<div class="container-fluid py-4 px-3">
+
+  <!-- Dashboard Title -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+    <h2 class="fw-bold text-uppercase text-primary-emphasis m-0" 
+    style="font-family: 'Roboto Slab', serif; color: #4c1d95;">
+      Barangay Reports Dashboard
+    </h2>
+
+    <button class="download-btn" onclick="downloadPDF()">
+      <i class="bi bi-file-earmark-pdf-fill me-2"></i> Download PDF
+    </button>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="row g-4 mb-4 text-center fade-container">
+    <div class="col-md-3 col-sm-6 fade-card">
+      <div class="info-card bg-gradient-purple text-white shadow-lg p-3 rounded-4">
+        <h6 class="fw-semibold mb-1">TOTAL CERTIFICATES</h6>
+        <h2 class="fw-bold mb-0 count-num" data-target="{{ total_certs }}">0</h2>
+        <p class="small opacity-75">(GENERATED + REISSUED)</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 fade-card">
+      <div class="info-card bg-gradient-indigo text-white shadow-lg p-3 rounded-4">
+        <h6 class="fw-semibold mb-1">GENERATED CERTIFICATES</h6>
+        <h2 class="fw-bold mb-0 count-num" data-target="{{ generated_certs }}">0</h2>
+        <p class="small opacity-75">(MARKED COMPLETE)</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 fade-card">
+      <div class="info-card bg-gradient-green text-white shadow-lg p-3 rounded-4">
+        <h6 class="fw-semibold mb-1">REISSUED CERTIFICATES</h6>
+        <h2 class="fw-bold mb-0 count-num" data-target="{{ reissued_certs }}">0</h2>
+        <p class="small opacity-75">(MARKED REISSUE)</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 fade-card">
+      <div class="info-card bg-gradient-pink text-white shadow-lg p-3 rounded-4">
+        <h6 class="fw-semibold mb-1">PENDING CERTIFICATES</h6>
+        <h2 class="fw-bold mb-0 count-num" data-target="{{ pending_certs }}">0</h2>
+        <p class="small opacity-75">(MARKED PENDING)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="row g-4 chart-fade">
+    <!-- Doughnut 1 -->
+    <div class="col-lg-6 col-md-6 chart-seq">
+      <div class="chart-card equal-chart d-flex flex-column align-items-center justify-content-center">
+        <h6 class="chart-title mb-3">CERTIFICATES BY TYPE (GENERATED VS REISSUED)</h6>
+        <div class="chart-center">
+          <canvas id="newVsReissueChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bar -->
+    <div class="col-lg-6 col-md-6 chart-seq">
+      <div class="chart-card equal-chart">
+        <h6 class="chart-title">CERTIFICATES BY DOCUMENT TYPE</h6>
+        <canvas id="certTypeChart" height="300"></canvas>
+      </div>
+    </div>
+
+    <!-- Doughnut 2 -->
+    <div class="col-lg-6 col-md-6 chart-seq">
+      <div class="chart-card equal-chart d-flex flex-column align-items-center justify-content-center">
+        <h6 class="chart-title mb-3">PURPOSE BREAKDOWN (GENERATED + REISSUED)</h6>
+        <div class="chart-center">
+          <canvas id="purposeChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly -->
+    <div class="col-lg-6 col-md-6 chart-seq">
+      <div class="chart-card equal-chart position-relative">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="chart-title mb-0">MONTHLY TRENDS</h6>
+          <select id="yearSelect" class="form-select form-select-sm w-auto">
+            {% for y in years %}
+              <option value="{{ y }}">{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <canvas id="monthlyChart" height="300"></canvas>
+        <p id="noDataMsg" class="text-center text-muted mt-3" style="display:none;">
+          No data available for this year
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JSON Data -->
+{{ new_vs_reissue|json_script:"newVsReissueData" }}
+{{ cert_counts|json_script:"certTypeData" }}
+{{ purpose_counts|json_script:"purposeData" }}
+{{ monthly_counts|json_script:"monthlyData" }}
+
+<style>
+  body { background-color: #f8f9fa; }
+
+  /* Download Button */
+  .download-btn {
+    background: linear-gradient(135deg,#4c1d95,#8b5cf6);
+    color:#fff;
+    font-weight:600;
+    border:none;
+    padding:10px 24px;
+    border-radius:12px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .download-btn:hover {
+    transform:scale(1.05);
+    box-shadow:0 0 15px rgba(124,58,237,0.6);
+  }
+
+  /* Cards */
+  .info-card { border:none; transition:all 0.3s ease;}
+  .info-card:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.1); }
+  .bg-gradient-purple { background:linear-gradient(135deg,#5b21b6,#8b5cf6);}
+  .bg-gradient-indigo { background:linear-gradient(135deg,#3b82f6,#6366f1);}
+  .bg-gradient-green { background:linear-gradient(135deg,#059669,#34d399);}
+  .bg-gradient-pink { background:linear-gradient(135deg,#ec4899,#f472b6);}
+
+  /* Chart cards */
+  .chart-card {
+    background:#ffffffd9;
+    backdrop-filter: blur(10px);
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, opacity 0.6s ease;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .equal-chart {
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    height:400px;
+  }
+
+  .chart-center {
+    width: 80%;
+    max-width: 260px;
+    height: 260px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  canvas { flex-grow:1; height:260px !important;}
+  .chart-title { font-weight:600; color:#4b5563; text-align:center; margin-bottom:15px;}
+
+  /* Animation */
+  @keyframes chartFadeUp {
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  /* 📱 Mobile Responsiveness */
+  @media (max-width: 992px) {
+    .equal-chart { height: auto; padding: 15px; }
+    .chart-center { width: 100%; max-width: 220px; height: 220px; }
+    canvas { height: 220px !important; }
+    .chart-card { margin-bottom: 20px; }
+    .info-card { padding: 16px; }
+  }
+
+  @media (max-width: 768px) {
+    .container-fluid { padding: 1rem; }
+    h2 { font-size: 1.25rem; text-align: center; }
+    .download-btn { width: 100%; margin-top: 10px; }
+    .row.g-4 { gap: 1rem; }
+    .chart-center { max-width: 200px; height: 200px; }
+    .chart-title { font-size: 0.9rem; }
+  }
+
+  @media (max-width: 576px) {
+    .info-card h2 { font-size: 1.5rem; }
+    .info-card h6 { font-size: 0.9rem; }
+    .chart-title { font-size: 0.85rem; }
+    .chart-center { max-width: 180px; height: 180px; }
+    .chart-card { padding: 15px; }
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+window.onload = function() {
+  // Smooth number count animation
+  document.querySelectorAll('.count-num').forEach(num => {
+    const target = +num.getAttribute('data-target');
+    const step = target / 60;
+    let count = 0;
+    const update = () => {
+      count += step;
+      if(count < target){
+        num.textContent = Math.floor(count);
+        requestAnimationFrame(update);
+      } else {
+        num.textContent = target;
+      }
+    };
+    update();
+  });
+
+  // Chart Data
+  const newVsReissue = JSON.parse(document.getElementById('newVsReissueData').textContent);
+  const certTypeData = JSON.parse(document.getElementById('certTypeData').textContent);
+  const purposeData = JSON.parse(document.getElementById('purposeData').textContent);
+  const monthlyData = JSON.parse(document.getElementById('monthlyData').textContent);
+
+  // Sequential fade-up when visible
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.style.animation = 'chartFadeUp 0.8s ease forwards';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.chart-card').forEach(card => observer.observe(card));
+
+  // PDF Download
+  window.downloadPDF = function(){
+    const pdfWindow = window.open('/certificates/reports/pdf/', '_blank');
+    pdfWindow.onload = () => setTimeout(() => pdfWindow.close(), 30000);
+  };
+
+  // Chart.js Visualizations
+  new Chart(document.getElementById('newVsReissueChart'), {
+    type: 'doughnut',
+    data: {
+      labels:['Generated','Reissued'],
+      datasets:[{
+        data:[newVsReissue.new,newVsReissue.reissued],
+        backgroundColor:['#6d28d9','#10b981'],
+        hoverOffset:10
+      }]
+    },
+    options:{plugins:{legend:{position:'bottom'}}, maintainAspectRatio:false}
+  });
+
+  // CERTIFICATES BY DOCUMENT TYPE — Violet Shades
+  const docLabels = certTypeData.map(c => (c.document_type || 'Unknown').toUpperCase());
+  const violetColors = docLabels.map(type => {
+    if (type.includes('CLEARANCE')) return '#6d28d9';
+    if (type.includes('INDIGENCY')) return '#7c3aed';
+    if (type.includes('RESIDENCY')) return '#8b5cf6';
+    return '#a78bfa';
+  });
+
+  new Chart(document.getElementById('certTypeChart'), {
+    type:'bar',
+    data:{
+      labels: docLabels,
+      datasets:[{
+        label:'Certificates',
+        data: certTypeData.map(c => c.total),
+        backgroundColor: violetColors,
+        borderRadius:6
+      }]
+    },
+    options:{scales:{y:{beginAtZero:true}},plugins:{legend:{display:false}}}
+  });
+
+  new Chart(document.getElementById('purposeChart'),{
+    type:'doughnut',
+    data:{
+      labels: purposeData.map(p=>p.purpose||'Unknown'),
+      datasets:[{
+        data: purposeData.map(p=>p.total),
+        backgroundColor:['#f87171','#60a5fa','#facc15','#34d399','#a78bfa','#fb923c'],
+        hoverOffset:10
+      }]
+    },
+    options:{plugins:{legend:{position:'bottom'}}, maintainAspectRatio:false}
+  });
+
+  const ctx = document.getElementById('monthlyChart');
+  const yearSelect = document.getElementById('yearSelect');
+  const noDataMsg = document.getElementById('noDataMsg');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const monthlyByYear = {};
+  monthlyData.forEach(e=>{
+    const [year,month]=e.month.split('-').map(Number);
+    if(!monthlyByYear[year]) monthlyByYear[year]={new:Array(12).fill(0),reissued:Array(12).fill(0)};
+    monthlyByYear[year].new[month-1]+=e.new_total||0;
+    monthlyByYear[year].reissued[month-1]+=e.reissued_total||0;
+  });
+
+  const monthlyChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:months,datasets:[
+      {label:'Generated',data:[],backgroundColor:'#7c3aedb3',borderRadius:6},
+      {label:'Reissued',data:[],backgroundColor:'#10b981b3',borderRadius:6}
+    ]},
+    options:{responsive:true,scales:{y:{beginAtZero:true}},plugins:{legend:{position:'bottom'}}}
+  });
+
+  function updateMonthlyChart(year){
+    const data=monthlyByYear[year]||{new:Array(12).fill(0),reissued:Array(12).fill(0)};
+    monthlyChart.data.datasets[0].data=data.new;
+    monthlyChart.data.datasets[1].data=data.reissued;
+    monthlyChart.update();
+    noDataMsg.style.display=(data.new.some(v=>v>0)||data.reissued.some(v>0))?'none':'block';
+  }
+
+  yearSelect.value=new Date().getFullYear();
+  updateMonthlyChart(yearSelect.value);
+  yearSelect.addEventListener('change', e=>updateMonthlyChart(e.target.value));
+};
+</script>
+{% endblock %}

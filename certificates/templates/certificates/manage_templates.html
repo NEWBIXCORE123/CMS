@@ -1,0 +1,118 @@
+{% extends "certificates/base.html" %}
+{% load static %}
+
+{% block title %} CMS - MANAGE TEMPLATES {% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Page Title -->
+  <h2 class="text-center fw-bold text-uppercase mb-5"
+      style="font-family: 'Roboto Slab', serif; font-weight: 700; font-size: 2rem; color: #4c1d95; letter-spacing: 1px;">
+     MANAGE CERTIFICATE TEMPLATES
+  </h2>
+
+  <!-- Main Card -->
+  <div class="card shadow-lg border-0 rounded-4 p-4">
+
+    <!-- Upload Form -->
+    <form id="templateForm" method="post" enctype="multipart/form-data" class="mb-4">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label fw-bold text-uppercase"
+               style="font-family: 'Roboto', sans-serif; color: #4c1d95;">Certificate Type</label>
+        {{ form.template_type }}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold text-uppercase"
+               style="font-family: 'Roboto', sans-serif; color: #4c1d95;">Upload Template (.docx)</label>
+        {{ form.file }}
+      </div>
+
+      <button type="submit"
+              class="btn btn-primary btn-lg d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-3"
+              style="font-family: 'Roboto', sans-serif; text-transform: uppercase; background-color: #4c1d95; border: none;">
+        <i class="bi bi-upload"></i> Upload / Replace
+      </button>
+    </form>
+
+    <!-- Current Templates -->
+    {% if current_templates %}
+      <hr class="my-4">
+      <h5 class="fw-bold text-uppercase mb-3"
+          style="font-family: 'Roboto', sans-serif; color: #4c1d95;">CURRENT TEMPLATES</h5>
+
+      <div class="row row-cols-1 row-cols-md-2 g-3">
+        {% for type, template in current_templates.items %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm rounded-4 bg-light">
+            <div class="card-body">
+              <h6 class="card-title text-uppercase fw-bold mb-2"
+                  style="font-family: 'Roboto', sans-serif; color: #4c1d95;">
+                {{ type }}
+              </h6>
+              <p class="mb-1 text-secondary" style="font-family: 'Roboto', sans-serif;">
+                <strong>Filename:</strong> {{ template.file.name|slice:"19:" }}
+              </p>
+              <p class="mb-0 text-secondary" style="font-family: 'Roboto', sans-serif;">
+                <strong>Uploaded at:</strong> {{ template.uploaded_at|date:"Y-m-d H:i" }}
+              </p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <p class="text-muted mt-4 fst-italic text-center" style="font-family: 'Roboto', sans-serif;">
+        No templates uploaded yet.
+      </p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.getElementById('templateForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const select = document.querySelector('[name="template_type"]');
+  const fileInput = document.querySelector('[name="file"]');
+
+  if (!fileInput.value) {
+    this.submit();
+    return;
+  }
+
+  const selectedType = select.value;
+  const fileName = fileInput.files[0].name;
+
+  if (fileName !== selectedType + ".docx") {
+    Swal.fire({
+      title: 'Invalid File!',
+      text: `Uploaded file name must be exactly '${selectedType}.docx'`,
+      icon: 'error',
+      confirmButtonColor: '#d33'
+    });
+  } else {
+    Swal.fire({
+      title: 'Ready to Upload!',
+      text: `You are uploading '${fileName}' for certificate type '${selectedType}'.`,
+      icon: 'success',
+      confirmButtonText: 'Upload',
+      confirmButtonColor: '#4c1d95',
+      showCancelButton: true,
+      cancelButtonText: 'Cancel',
+      cancelButtonColor: '#d33'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        e.target.submit();
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

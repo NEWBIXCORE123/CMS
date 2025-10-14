@@ -1,0 +1,325 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Brgy Longos CMS{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap 5 & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #731d95;
+      --secondary-color: #7c3aed;
+      --accent-color: #a78bfa;
+      --yellow: #ffcc00;
+      --danger: #dc3545;
+      --bg-color: #f9fafb;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #212529;
+      overflow-x: hidden;
+    }
+
+    /* Navbar styling */
+    .navbar {
+      background-color: var(--primary-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      padding: 0.75rem 1.25rem;
+      border-bottom: 3px solid #5a1174;
+      position: sticky;
+      top: 0;
+      z-index: 1050;
+    }
+
+    .navbar-brand {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--yellow) !important;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .navbar-brand img {
+      max-height: 40px;
+      border-radius: 8px;
+    }
+
+    /* Navbar toggler */
+    .navbar-toggler {
+      border: none;
+      padding: 0.35rem 0.5rem;
+      font-size: 1.3rem;
+    }
+    .navbar-toggler:focus {
+      outline: none;
+      box-shadow: none;
+    }
+    .navbar-toggler-icon {
+      filter: invert(1);
+    }
+
+    /* Navbar links */
+    .navbar-nav .nav-link {
+      color: #fff !important;
+      font-weight: 600;
+      text-transform: uppercase;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      margin: 0.2rem 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar-nav .nav-link:hover i,
+    .navbar-nav .nav-link.active i {
+      color: #FFD700 !important;
+      transform: scale(1.1);
+    }
+
+    .navbar-nav .dropdown-menu {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      padding: 0.5rem 0;
+      min-width: 190px;
+      background: #fff;
+      margin-top: 0.5rem !important;
+    }
+
+    .navbar .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: var(--primary-color);
+      padding: 10px 16px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .navbar .dropdown-item:hover {
+      background: var(--accent-color);
+      color: #fff !important;
+    }
+
+    .navbar .dropdown-item:hover i {
+      color: #fff;
+    }
+
+    /* Smooth dropdown animation on mobile */
+    @media (max-width: 991px) {
+      .navbar-collapse {
+        background-color: var(--primary-color);
+        border-radius: 12px;
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        animation: fadeSlideDown 0.35s ease;
+      }
+
+      .navbar-nav .nav-link {
+        width: 100%;
+        justify-content: flex-start;
+        font-size: 0.95rem;
+        padding: 0.65rem 0.9rem;
+      }
+
+      .navbar .dropdown-menu {
+        position: static !important;
+        box-shadow: none;
+        margin-top: 0;
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      .navbar .dropdown-item {
+        padding: 8px 14px;
+      }
+
+      .navbar-brand img {
+        max-height: 32px;
+      }
+    }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    th {
+      background-color: var(--secondary-color);
+      color: #fff;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 14px 16px;
+      border-bottom: 3px solid #6d28d9;
+      text-align: center;
+    }
+
+    td {
+      padding: 12px 16px;
+      font-weight: 600;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+      transition: background 0.2s ease;
+    }
+
+    tr:hover td {
+      background-color: #f6edff;
+    }
+
+    td.certificate-type::before {
+      content: "\f46c"; 
+      font-family: "bootstrap-icons";
+      color: var(--primary-color);
+      margin-right: 6px;
+    }
+
+    @media (max-width: 768px) {
+      .navbar-brand { font-size: 1.1rem; }
+      table { font-size: 0.9rem; }
+      td, th { padding: 10px 12px; }
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+    }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'certificates:dashboard' %}">
+      <img src="{% static 'images/logo.png' %}" alt="Logo"> BRGY LONGOS CMS
+    </a>
+
+    <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-2 text-white"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      {% if user.is_authenticated %}
+      {% with role=user.profile.role|default_if_none:"" %}
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'certificates:dashboard' %}">
+            <i class="bi bi-speedometer2"></i> DASHBOARD
+          </a>
+        </li>
+
+        {% if role in 'staff admin superadmin' or user.is_superuser %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="certDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-file-earmark-text"></i> CERTIFICATES
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="certDropdown">
+            <li><a class="dropdown-item" href="{% url 'certificates:list_certificates' %}"><i class="bi bi-folder2-open"></i> VIEW CERTIFICATES</a></li>
+            <li><a class="dropdown-item" href="{% url 'certificates:ocr_upload' %}"><i class="bi bi-plus-circle"></i> NEW CERTIFICATE</a></li>
+          </ul>
+        </li>
+        {% endif %}
+
+        {% if role in 'admin superadmin' or user.is_superuser %}
+        <li class="nav-item"><a class="nav-link {% if 'activity_logs' in request.path %}active{% endif %}" href="{% url 'certificates:activity_logs' %}"><i class="bi bi-clock-history"></i> ACTIVITY LOGS</a></li>
+        <li class="nav-item"><a class="nav-link {% if 'reports' in request.path %}active{% endif %}" href="{% url 'certificates:reports' %}"><i class="bi bi-bar-chart-line"></i> REPORTS</a></li>
+        {% endif %}
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle fw-semibold" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person-circle"></i>
+            <span style="color: #FFD700; font-weight: bold;">{{ user.get_full_name|default:user.username }}</span>
+            ({{ role|title }})
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            {% if role == 'superadmin' or user.is_superuser %}
+            <li><a class="dropdown-item" href="{% url 'certificates:digital_signature_upload' %}"><i class="bi bi-pencil-square"></i> DIGITAL SIGNATURE</a></li>
+            <li><a class="dropdown-item" href="{% url 'certificates:manage_certificate_template' %}"><i class="bi bi-file-earmark-text"></i> MANAGE TEMPLATE</a></li>
+            <li><a class="dropdown-item" href="/admin/"><i class="bi bi-database"></i> DJANGO DATABASE</a></li>
+            <li><hr class="dropdown-divider"></li>
+            {% endif %}
+            <li><button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class="bi bi-box-arrow-right"></i> LOGOUT</button></li>
+          </ul>
+        </li>
+
+      </ul>
+      {% endwith %}
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- Logout Modal -->
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-header justify-content-center bg-danger text-white border-0">
+        <h5 class="modal-title" id="logoutModalLabel">
+          <i class="bi bi-door-open me-2"></i> CONFIRM LOGOUT
+        </h5>
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ARE YOU SURE YOU WANT TO LOGOUT?
+      </div>
+      <div class="modal-footer justify-content-center border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">CANCEL</button>
+        <a href="{% url 'certificates:logout' %}" class="btn btn-danger">LOGOUT</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Page Container -->
+<div class="container my-4">
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% block scripts %}
+<script>
+  window.onload = function() {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+  };
+</script>
+{% endblock %}
+</body>
+</html>

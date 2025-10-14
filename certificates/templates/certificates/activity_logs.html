@@ -1,0 +1,297 @@
+{% extends "certificates/base.html" %}
+{% load log_extras %}
+
+{% block title %}CMS - ACTIVITY LOGS{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<style>
+:root {
+    --violet-dark: #4c1d95;
+    --violet-light: #a855f7;
+    --soft-bg: #f9f7fc;
+    /* Category colors */
+    --color-login: #8fd8a9;    
+    --color-logout: #f0a5a5;   
+    --color-warning: #e9c2a8;  
+    --color-create: #eddfa9;   
+    --color-other: #c9adf9;    
+}
+
+/* Body & container */
+body {
+    background: var(--soft-bg);
+    font-family: 'Poppins', sans-serif; 
+}
+
+/* Keep navbar font same as base.html */
+.navbar, .navbar * {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.container { max-width: 1200px; margin: 20px auto; padding: 0 12px; }
+
+/* Title: Centered, violet, professional font */
+.activity-header-centered {
+    font-family: 'Roboto Slab', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    text-transform: uppercase;
+    color: var(--violet-dark);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Filters (long, uppercase, same as before) */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+.filters input,
+.filters select {
+    min-width: 180px;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+    text-transform: uppercase;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+    flex: 1;
+}
+.filters input::placeholder { text-transform: uppercase; color: #9ca3af; }
+.filters select option { text-transform: uppercase; }
+.filters select option:hover { background-color: #e0d7f7; }
+.filters input:focus,
+.filters select:focus {
+    outline: none;
+    border-color: var(--violet-dark);
+    box-shadow: 0 0 6px rgba(139,92,246,0.3);
+}
+
+/* Fix placeholder for mobile date input */
+input[type="date"]::-webkit-datetime-edit {
+    color: #212529;
+}
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field {
+    padding: 0 2px;
+}
+input[type="date"]::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+}
+
+/* Apply button */
+.btn-theme {
+    background: var(--violet-dark);
+    color: #fff;
+    border-radius: 50px;
+    padding: 0.35rem 1.2rem;
+    font-size: 0.9rem;
+    min-width: 100px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+.btn-theme:hover { background: var(--violet-light); }
+
+/* Card styling */
+.log-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.log-card .card {
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    padding: 0;
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.log-card .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+}
+
+/* Title bar inside card with icons */
+.log-title-bar {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #000;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 1rem;
+    transition: background 0.2s ease;
+}
+.log-title-bar i { font-size: 1.3rem; }
+.log-title-bar:hover { filter: brightness(0.95); }
+
+/* Category colors */
+.bg-login { background-color: var(--color-login) !important; }
+.bg-logout { background-color: var(--color-logout) !important; }
+.bg-warning { background-color: var(--color-warning) !important; }
+.bg-create { background-color: var(--color-create) !important; }
+.bg-other { background-color: var(--color-other) !important; }
+
+/* Card body */
+.card-body { padding: 18px; }
+.card-body p { margin-bottom: 8px; font-size: 0.95rem; }
+.card-body p strong { font-weight: 600; }
+
+/* Pagination */
+.custom-pagination .page-item { margin: 0 4px; }
+.custom-pagination .page-link {
+    border: none;
+    border-radius: 50px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--violet-dark);
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: all 0.25s ease;
+}
+.custom-pagination .page-link:hover {
+    filter: brightness(0.9);
+    transform: translateY(-1px);
+}
+.custom-pagination .page-item.active .page-link {
+    color: #fff;
+    background: linear-gradient(135deg, var(--violet-dark), var(--violet-light));
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.custom-pagination .page-item.disabled .page-link {
+    background: #f3f4f6;
+    color: #9ca3af;
+    box-shadow: none;
+    pointer-events: none;
+}
+</style>
+
+<div class="container">
+
+  <!-- Centered Title -->
+  <h2 class="activity-header-centered">ACTIVITY LOGS</h2>
+
+  <!-- Filters -->
+  <form class="filters mb-3">
+      <input type="text" id="searchLogs" class="form-control" placeholder="SEARCH LOGS" value="{{ search }}">
+      <input type="date" id="filterDate" class="form-control" placeholder="MM/DD/YYYY" value="{{ date }}">
+      <select id="filterType" class="form-select">
+        <option value="" {% if not log_type %}selected{% endif %}>ALL TYPES</option>
+        <option value="login" {% if log_type == "login" %}selected{% endif %}>LOGIN</option>
+        <option value="logout" {% if log_type == "logout" %}selected{% endif %}>LOGOUT</option>
+        <option value="failed" {% if log_type == "failed" %}selected{% endif %}>SECURITY</option>
+        <option value="create" {% if log_type == "create" %}selected{% endif %}>CREATE</option>
+        <option value="other" {% if log_type == "other" %}selected{% endif %}>OTHER</option>
+      </select>
+      <button type="button" class="btn btn-theme apply-button" onclick="filterAndRedirect()">Apply</button>
+  </form>
+
+  <!-- Activity Cards -->
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3" id="logsContainer">
+    {% for log in logs %}
+    <div class="col log-card" data-type="{{ log.simple_type|lower }}">
+      <div class="card h-100">
+        <!-- Title bar with improved icons -->
+        <div class="log-title-bar 
+          {% if log.simple_type == 'Login' %}bg-login
+          {% elif log.simple_type == 'Logout' %}bg-logout
+          {% elif log.simple_type == 'Failed' %}bg-warning
+          {% elif log.simple_type == 'Create' %}bg-create
+          {% else %}bg-other
+          {% endif %}">
+          <i class="fa-solid 
+            {% if log.simple_type == 'Login' %}fa-user-check
+            {% elif log.simple_type == 'Logout' %}fa-user-times
+            {% elif log.simple_type == 'Failed' %}fa-triangle-exclamation
+            {% elif log.simple_type == 'Create' %}fa-file-circle-plus
+            {% else %}fa-file-lines
+            {% endif %}"></i>
+          <span>
+            {% if log.simple_type == 'Failed' %}WARNING{% else %}{{ log.simple_type }}{% endif %}
+          </span>
+        </div>
+        <div class="card-body">
+          <p><strong>Date & Time:</strong> {{ log.created_at|date:"Y-m-d H:i" }}</p>
+          <p><strong>User:</strong> 
+            {% if log.user %}{{ log.user.get_full_name|default:log.user.username }}{% else %}Anonymous{% endif %}
+          </p>
+          <p class="mb-0">{{ log.action }}</p>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body text-center text-muted">
+          No activity yet.
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  <div class="d-flex justify-content-center mt-4">
+    <nav aria-label="Page navigation">
+      <ul class="pagination pagination-sm custom-pagination">
+        {% if logs.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?type={{ log_type }}&search={{ search }}&date={{ date }}&page={{ logs.previous_page_number }}">Previous</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        {% for num in logs.paginator.page_range %}
+          {% if num == 1 or num == logs.paginator.num_pages or num >= logs.number|add:-2 and num <= logs.number|add:2 %}
+            <li class="page-item {% if logs.number == num %}active{% endif %}">
+              <a class="page-link"
+                 href="?type={{ log_type }}&search={{ search }}&date={{ date }}&page={{ num }}">{{ num }}</a>
+            </li>
+          {% elif num == logs.number|add:-3 or num == logs.number|add:3 %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if logs.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?type={{ log_type }}&search={{ search }}&date={{ date }}&page={{ logs.next_page_number }}">Next</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+
+</div>
+
+<script>
+const searchInput = document.getElementById('searchLogs');
+const dateInput = document.getElementById('filterDate');
+const typeSelect = document.getElementById('filterType');
+
+function filterAndRedirect() {
+    const search = searchInput.value;
+    const date = dateInput.value;
+    const type = typeSelect.value;
+    const params = new URLSearchParams({search, date, type});
+    window.location.href = '?' + params.toString();
+}
+
+searchInput.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        filterAndRedirect();
+    }
+});
+</script>
+
+{% endblock %}

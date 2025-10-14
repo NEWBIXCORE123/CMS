@@ -1,0 +1,360 @@
+{% load static %}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title> CMS - LOGIN</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --purple: #4B0082;
+      --gold: #d4af37;
+      --input-height: 48px;
+      --form-width: 320px;
+    }
+    * { box-sizing: border-box }
+    html, body { height: 100%; margin: 0; font-family: 'Poppins', sans-serif }
+
+    .container { display: flex; height: 100vh }
+
+    .left-panel { 
+      width: 40%; 
+      background: var(--purple); 
+      color: #fff; 
+      display:flex; 
+      flex-direction:column; 
+      justify-content:center; 
+      align-items:center; 
+      padding:48px 32px;
+    }
+
+    /* Logo + CMS text */
+    .logo-title { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      margin-bottom: 22px; 
+      justify-content: center; 
+      opacity: 0;
+      transform: translateY(-20px);
+      animation: fadeSlideIn 0.8s forwards 0.1s;
+    }
+    .logo-title img { 
+      width: 72px; 
+      height: auto; 
+      display: block; 
+    }
+    .logo-title h1 { 
+      font-size: 22px; 
+      margin: 0; 
+      color: var(--gold); 
+      font-weight: 700; 
+      line-height: 1.2; 
+      text-align: center; 
+    }
+
+    /* Login title */
+    .login-title { 
+      font-size:20px; 
+      font-weight:700; 
+      text-transform:uppercase; 
+      letter-spacing:1.5px; 
+      color:var(--gold); 
+      margin:16px 0 24px; 
+      position:relative; 
+      display:inline-block; 
+      opacity: 0;
+      transform: translateY(-15px);
+      animation: fadeSlideIn 0.8s forwards 0.3s;
+    }
+    .login-title::after{ 
+      content:""; 
+      position:absolute; 
+      left:0; 
+      bottom:-8px; 
+      height:3px; 
+      width:100%; 
+      background:var(--gold); 
+      transform-origin:left; 
+      transform:scaleX(0); 
+      animation:underlineGrow .6s ease .45s forwards 
+    }
+
+    @keyframes fadeSlideIn{
+      to { opacity:1; transform: translateY(0); }
+    }
+
+    @keyframes underlineGrow{ from{transform:scaleX(0)} to{transform:scaleX(1)} }
+
+    form{ 
+      width:100%; 
+      max-width:var(--form-width) 
+    }
+
+    .form-group{ 
+      margin-bottom:16px; 
+      position:relative 
+    }
+
+    label{ 
+      display:block; 
+      margin-bottom:8px; 
+      font-weight:600; 
+      font-size:14px; 
+      color:#f3e9ff 
+    }
+    
+    input[
+      type="text"], 
+    
+    input[
+      type="password"
+      ]
+      { 
+      width:100%; 
+      height:var(--input-height); 
+      padding:12px 44px 12px 12px; 
+      border-radius:10px; 
+      border:0; 
+      font-size:15px; 
+      background:#fff; 
+      color:#222; 
+      outline:none; 
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12); 
+      opacity:0; 
+      transform:translateX(-30px); 
+      animation:slideIn .55s ease forwards; 
+    }
+    .form-group:nth-of-type(1) input{
+       animation-delay:.15s 
+      }
+    .form-group:nth-of-type(2) input{ 
+      animation-delay:.30s 
+    }
+
+    @keyframes slideIn{ from{opacity:0; transform:translateX(-30px)} to{opacity:1; transform:translateX(0)} }
+
+    input::placeholder{ color:#8a8a8a; font-size:15px }
+    .password-wrapper{ position:relative }
+    .toggle-password{ 
+      position:absolute; right:12px; top:70%; transform:translateY(-50%); 
+      font-size:18px; color:var(--purple); 
+      background:transparent; border:none; cursor:pointer; 
+      line-height:1; display:flex; align-items:center; justify-content:center 
+    }
+    .toggle-password:focus{ outline:none }
+
+    button[type="submit"]{ 
+      width:100%; height:var(--input-height); border-radius:10px; 
+      background:var(--gold); border:0; font-weight:700; font-size:15px; 
+      cursor:pointer; box-shadow:0 6px 14px rgba(0,0,0,0.18); margin-top:4px; 
+      opacity:0; transform:translateX(-30px); 
+      animation:slideIn .55s ease forwards; 
+      animation-delay:.45s 
+    }
+    button[type="submit"]:hover{ background:#b8962f; transform:translateY(-2px) }
+
+    .footer{ margin-top:18px; font-size:13px; color:#e8dfe8; text-align:center }
+
+    .right-panel{ 
+      width:60%; 
+      background: url("{% static 'images/login_bg.jpg' %}") center/cover no-repeat; 
+      position:relative; display:block 
+    }
+    .right-panel::before{ 
+      content:""; 
+      position:absolute; inset:0; 
+      background: rgba(75,0,130,0.56); pointer-events:none 
+    }
+
+    /* MOBILE RESPONSIVE FIXES */
+    @media (max-width:900px){
+      .container{flex-direction:column} 
+      .left-panel, .right-panel{width:100%; height:auto; min-height:50vh} 
+      .logo-title h1{font-size:20px} 
+      :root{--form-width:88%} 
+      .right-panel { background-size: contain; background-position: center top; background-repeat: no-repeat; }
+    }
+
+    @media (max-width:576px) {
+      .left-panel { padding:32px 20px; }
+      .logo-title img { width:56px; }
+      .logo-title h1 { font-size:16px; }
+      .login-title { font-size:18px; margin:12px 0 18px; }
+      input[type="text"], input[type="password"], button[type="submit"] { font-size:14px; height:42px; }
+      button[type="submit"] { margin-top:8px; }
+      .footer { font-size:12px; }
+      .right-panel { height:auto; min-height:40vh; background-size:contain; background-position:center top; background-repeat:no-repeat; }
+    }
+
+    .swal2-lockout-box {
+      border-radius: 12px !important;
+      background: #fff !important;
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <div class="logo-title">
+        <img src="{% static 'images/logo.png' %}" alt="Barangay Logo"/>
+        <h1>BARANGAY LONGOS CMS</h1>
+      </div>
+      <div class="login-title">LOGIN</div>
+      <form method="post" action="{% url 'certificates:login' %}">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" placeholder="Enter your username" required
+                 {% if lockout_seconds and lockout_seconds|add:0 > 0 %} disabled {% endif %}>
+        </div>
+        <div class="form-group password-wrapper">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="Enter your password" required
+                 {% if lockout_seconds and lockout_seconds|add:0 > 0 %} disabled {% endif %}>
+          <button type="button" class="toggle-password" onclick="togglePassword(event)"
+                  {% if lockout_seconds and lockout_seconds|add:0 > 0 %} disabled style="cursor:not-allowed;" {% endif %}>
+            <i class="fa-solid fa-eye-slash"></i>
+          </button>
+        </div>
+        <button type="submit"
+                {% if lockout_seconds and lockout_seconds|add:0 > 0 %} disabled style="opacity:0.6; cursor:not-allowed;" {% endif %}>
+          Sign in
+        </button>
+      </form>
+
+      <!-- Inline error feedback -->
+      {% if messages %}
+        <div class="login-errors" style="margin-top:14px; text-align:left; max-width:var(--form-width);">
+          {% for message in messages %}
+            {% if "locked" not in message|lower and "successfully logged out" not in message|lower %}
+              <p style="color:#ff4d4f; font-size:14px; font-weight:500; margin:6px 0 0;">
+                <i class="fa-solid fa-triangle-exclamation" style="margin-right:6px; color:#ff4d4f;"></i>
+                {{ message }}
+                {% if attempts_left is not None %}
+                  ({{ attempts_left }} attempt{{ attempts_left|pluralize }} left)
+                {% endif %}
+              </p>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="footer">© Barangay Longos. All rights reserved.</div>
+    </div>
+    <div class="right-panel"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function togglePassword(e) {
+      const pw = document.getElementById('password');
+      const icon = e.currentTarget.querySelector('i');
+      if (pw.type === 'password') {
+        pw.type = 'text';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      } else {
+        pw.type = 'password';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      }
+    }
+  </script>
+
+  <!-- Lockout Countdown -->
+  <script>
+document.addEventListener('DOMContentLoaded', function () {
+  let lockoutSeconds = parseInt("{{ lockout_seconds|default:'0' }}", 10) || 0;
+
+  if (lockoutSeconds > 0) {
+    localStorage.removeItem("lockout_done");
+    const expiry = Date.now() + lockoutSeconds * 1000;
+    localStorage.setItem("lockout_expiry", expiry);
+  }
+
+  const saved = localStorage.getItem("lockout_expiry");
+  if (saved && !localStorage.getItem("lockout_done")) {
+    const remaining = Math.floor((saved - Date.now()) / 1000);
+    if (remaining > 0) {
+      startCountdown(remaining);
+    } else {
+      localStorage.removeItem("lockout_expiry");
+      localStorage.removeItem("lockout_done");
+    }
+  }
+
+  function startCountdown(seconds) {
+    Swal.fire({
+      icon: "warning",
+      title: "Account Locked",
+      html: `
+        <div style="font-size:17px; font-weight:600; margin-bottom:10px;">
+          Too many failed login attempts
+        </div>
+        <div style="font-size:15px; color:#333;">
+          Please try again in <b><span id="countdown"></span></b>
+        </div>
+      `,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      showCloseButton: false,
+      width: "420px",
+      padding: "24px 20px",
+      customClass: { popup: 'swal2-lockout-box' },
+      didOpen: () => {
+        const countdownEl = Swal.getHtmlContainer().querySelector('#countdown');
+        const timer = setInterval(() => {
+          seconds--;
+          if (seconds <= 0) {
+            clearInterval(timer);
+            Swal.close();
+            localStorage.removeItem("lockout_expiry");
+            localStorage.setItem("lockout_done", "true");
+            window.location.href = "{% url 'certificates:login' %}";
+          } else {
+            const m = Math.floor(seconds / 60);
+            const s = (seconds % 60).toString().padStart(2, "0");
+            countdownEl.textContent = `${m}:${s}`;
+          }
+        }, 1000);
+      }
+    });
+  }
+});
+</script>
+
+<!-- Login Alerts -->
+{% if messages %}
+  {% for message in messages %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const messageText = "{{ message|escapejs }}".toLowerCase();
+
+      if (messageText.includes("successfully logged out")) {
+        Swal.fire({
+          icon: "success",
+          title: "Logged Out",
+          text: "{{ message|escapejs }}",
+          timer: 2500,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
+      }
+    });
+    </script>
+  {% endfor %}
+{% endif %}
+</body>
+</html>
