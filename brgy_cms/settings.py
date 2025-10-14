@@ -117,3 +117,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/certificates/login/"
 LOGIN_REDIRECT_URL = "/certificates/dashboard/"
 LOGOUT_REDIRECT_URL = "/certificates/login/"
+
+# brgy_cms/settings.py
+STATICFILES_DIRS = []  # Remove certificates/static/, as it's handled by AppDirectoriesFinder
