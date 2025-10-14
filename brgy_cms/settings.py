@@ -5,8 +5,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- Security ---
 SECRET_KEY = "your-secret-key"
-DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+DEBUG = False
+ALLOWED_HOSTS = ['cms.onrender.com', 'localhost', '127.0.0.1']
 
 # --- Installed Apps ---
 INSTALLED_APPS = [
@@ -28,7 +28,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # --- Templates ---
 TEMPLATES = [
@@ -87,3 +90,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/certificates/login/"
 LOGIN_REDIRECT_URL = "/certificates/dashboard/"
 LOGOUT_REDIRECT_URL = "/certificates/login/"
+
+
