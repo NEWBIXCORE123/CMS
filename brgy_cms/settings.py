@@ -76,9 +76,10 @@ TIME_ZONE = "Asia/Manila"
 USE_I18N = True
 USE_TZ = True
 
-# --- Static & Media ---
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'certificates' / 'static']  # Include your app static folder
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # where collectstatic will put all static files
+
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
