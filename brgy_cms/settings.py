@@ -1,15 +1,21 @@
 from pathlib import Path
 import os
 
+# -------------------------------
+# BASE
+# -------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# --- Security ---
-SECRET_KEY = "your-secret-key"
-DEBUG = False
-ALLOWED_HOSTS = ['*']
+# -------------------------------
+# SECURITY
+# -------------------------------
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+DEBUG = os.getenv("DEBUG", "False") == "True"
+ALLOWED_HOSTS = ["*"]  # For Render, can restrict to your domain later
 
-
-# --- Installed Apps ---
+# -------------------------------
+# INSTALLED APPS
+# -------------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -17,13 +23,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "certificates",
+    "certificates",  # your app
 ]
 
-# --- Middleware ---
+# -------------------------------
+# MIDDLEWARE
+# -------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # MUST be right here
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Must be right after SecurityMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -32,13 +40,13 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# --- Templates ---
+# -------------------------------
+# TEMPLATES
+# -------------------------------
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [BASE_DIR / "templates"],  # global templates folder
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -50,11 +58,15 @@ TEMPLATES = [
     },
 ]
 
-# --- URLs & WSGI ---
+# -------------------------------
+# URLS & WSGI
+# -------------------------------
 ROOT_URLCONF = "brgy_cms.urls"
 WSGI_APPLICATION = "brgy_cms.wsgi.application"
 
-# --- Database (SQLite for local dev) ---
+# -------------------------------
+# DATABASE
+# -------------------------------
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -62,7 +74,9 @@ DATABASES = {
     }
 }
 
-# --- Authentication ---
+# -------------------------------
+# PASSWORD VALIDATION
+# -------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -70,26 +84,36 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# --- Localization ---
+# -------------------------------
+# LOCALIZATION
+# -------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Manila"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'certificates' / 'static']  # Include your app static folder
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # where collectstatic will put all static files
+# -------------------------------
+# STATIC FILES
+# -------------------------------
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "certificates" / "static"]  # app static files
+STATIC_ROOT = BASE_DIR / "staticfiles"  # collectstatic destination
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-
+# -------------------------------
+# MEDIA FILES
+# -------------------------------
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# --- Default auto field ---
+# -------------------------------
+# DEFAULT AUTO FIELD
+# -------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --- Login redirects ---
+# -------------------------------
+# LOGIN REDIRECTS
+# -------------------------------
 LOGIN_URL = "/certificates/login/"
 LOGIN_REDIRECT_URL = "/certificates/dashboard/"
 LOGOUT_REDIRECT_URL = "/certificates/login/"
-
-
