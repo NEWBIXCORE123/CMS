@@ -6,7 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- Security ---
 SECRET_KEY = "your-secret-key"
 DEBUG = False
-ALLOWED_HOSTS = ['cms.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
+
 
 # --- Installed Apps ---
 INSTALLED_APPS = [
