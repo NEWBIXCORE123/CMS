@@ -47,7 +47,7 @@
               <i class="bi bi-filetype-docx"></i> Download DOCX
             </a>
             <button class="btn btn-warning action-btn shadow-sm d-flex align-items-center justify-content-center gap-2"
-                    id="reissueBtn" data-cert-id="{{ cert.id }}">
+                    id="reissueBtn" data-cert-id="{{ cert.pk }}">
               <i class="bi bi-arrow-repeat"></i> Reissue
             </button>
             {% endif %}
@@ -76,12 +76,13 @@
           </div>
           {% endif %}
         </div>
+      </div>
 
       {% else %}
       <div class="text-center text-danger py-5">
         <i class="bi bi-exclamation-triangle-fill fs-1 mb-3"></i>
         <p class="fs-5 fw-semibold">Certificate not found.</p>
-        <a class="btn btn-outline-primary btn-lg mt-3 px-4" href="{% url 'list_certificates' %}">
+        <a class="btn btn-outline-primary btn-lg mt-3 px-4" href="{% url 'certificates:list_certificates' %}">
           <i class="bi bi-arrow-left"></i> Back to List
         </a>
       </div>

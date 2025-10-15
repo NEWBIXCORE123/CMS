@@ -14,12 +14,6 @@ from certificates.models import Certificate, AdminSignature, ActivityLog
 from certificates.decorators import role_required
 from certificates.utils import TEMPLATE_MAP, _ensure_dirs
 
-
-# ---------------- Helper for generated paths ----------------
-def get_generated_path(pk, fmt="docx"):
-    return Path(settings.MEDIA_ROOT) / "generated" / fmt / f"certificate_{pk}.{fmt}"
-
-
 # ---------------- Certificate Generation ----------------
 @login_required
 def generate_certificate(request, pk, skip_log=False):
@@ -28,22 +22,23 @@ def generate_certificate(request, pk, skip_log=False):
 
     tpl_filename = TEMPLATE_MAP.get(cert.document_type)
     if not tpl_filename:
+        messages.error(request, "Template not found.")
         return redirect("certificates:certificate_detail", pk=cert.pk)
 
     tpl_path = Path(settings.MEDIA_ROOT) / "certificate_templates" / tpl_filename
     if not tpl_path.exists():
+        messages.error(request, "Template file missing.")
         return redirect("certificates:certificate_detail", pk=cert.pk)
 
-    # Generate QR Code
-    verify_url = request.build_absolute_uri(f"/verify/{cert.verification_token}/")
+    # Generate QR code
+    verify_url = request.build_absolute_uri(f"/certificates/verify/{cert.verification_token}/")
     qr_path = Path(settings.MEDIA_ROOT) / "qrcodes" / f"qr_{cert.pk}.png"
     qr_path.parent.mkdir(parents=True, exist_ok=True)
     qrcode.make(verify_url).save(qr_path)
 
     try:
         doc = DocxTemplate(str(tpl_path))
-
-        # Digital signature (Linux-safe)
+        # Handle digital signature
         signature_image_path = None
         default_signature_path = Path(settings.MEDIA_ROOT) / "signatures" / "default_signature.png"
 
@@ -96,21 +91,16 @@ def generate_certificate(request, pk, skip_log=False):
         cert.save(update_fields=["generated_docx", "status"])
 
     except Exception as e:
-        print(f"[Certificate Generation Error] {e}")
+        messages.error(request, f"Certificate generation error: {str(e)}")
         return redirect("certificates:certificate_detail", pk=cert.pk)
 
-    # Activity log
     if not skip_log:
         try:
-            ActivityLog.objects.create(
-                user=request.user,
-                action=f"Created certificate {cert.id} - {cert.full_name}"
-            )
+            ActivityLog.objects.create(user=request.user, action=f"Created certificate {cert.id} - {cert.full_name}")
         except Exception as e:
             print(f"[Activity Log Error] {e}")
 
     return redirect("certificates:certificate_detail", pk=cert.pk)
-
 
 # ---------------- DOCX Download ----------------
 @login_required
@@ -127,3 +117,23 @@ def certificate_docx(request, pk):
         )
         response["Content-Disposition"] = f'attachment; filename=certificate_{pk}.docx'
         return response
+
+# ---------------- Certificate Verification ----------------
+@login_required
+def verify_certificate(request, token):
+    cert = get_object_or_404(Certificate, verification_token=token)
+    return HttpResponse(f"Certificate for {cert.full_name} is valid.")
+
+# ---------------- QR Code ----------------
+@login_required
+def certificate_qr(request, token):
+    cert = get_object_or_404(Certificate, verification_token=token)
+    qr_path = Path(settings.MEDIA_ROOT) / "qrcodes" / f"qr_{cert.pk}.png"
+    qr_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if not qr_path.exists():
+        verify_url = request.build_absolute_uri(f"/certificates/verify/{cert.verification_token}/")
+        qrcode.make(verify_url).save(qr_path)
+
+    with open(qr_path, "rb") as f:
+        return HttpResponse(f.read(), content_type="image/png")
