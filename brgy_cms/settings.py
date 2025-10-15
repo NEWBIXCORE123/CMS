@@ -105,6 +105,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # -------------------------------
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+CERTIFICATE_TEMPLATE_DIR = MEDIA_ROOT / "certificate_templates"
 
 # -------------------------------
 # DEFAULT AUTO FIELD
