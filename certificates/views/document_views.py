@@ -1,3 +1,4 @@
+# certificates/views/document_views.py
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse
@@ -33,7 +34,7 @@ def generate_certificate(request, pk, skip_log=False):
     if not tpl_path.exists():
         return redirect("certificates:certificate_detail", pk=cert.pk)
 
-    # ✅ Generate QR Code
+    # Generate QR Code
     verify_url = request.build_absolute_uri(f"/verify/{cert.verification_token}/")
     qr_path = Path(settings.MEDIA_ROOT) / "qrcodes" / f"qr_{cert.pk}.png"
     qr_path.parent.mkdir(parents=True, exist_ok=True)
@@ -42,7 +43,7 @@ def generate_certificate(request, pk, skip_log=False):
     try:
         doc = DocxTemplate(str(tpl_path))
 
-        # ✅ Handle digital signature (Linux-safe)
+        # Digital signature (Linux-safe)
         signature_image_path = None
         default_signature_path = Path(settings.MEDIA_ROOT) / "signatures" / "default_signature.png"
 
@@ -61,7 +62,7 @@ def generate_certificate(request, pk, skip_log=False):
         if signature_image_path and signature_image_path.exists():
             signature_inline = InlineImage(doc, str(signature_image_path), width=Mm(40), height=Mm(12))
 
-        # ✅ Context for docx template
+        # Template context
         context = {
             "cert": cert,
             "full_name": cert.full_name,
@@ -83,7 +84,7 @@ def generate_certificate(request, pk, skip_log=False):
 
         doc.render(context)
 
-        # ---------------- Save DOCX ----------------
+        # Save DOCX
         docx_out_dir = Path(settings.MEDIA_ROOT) / "generated" / "docx"
         docx_out_dir.mkdir(parents=True, exist_ok=True)
         docx_name = f"{cert.document_type}_{cert.full_name.replace(' ', '_')}.docx"
@@ -98,7 +99,7 @@ def generate_certificate(request, pk, skip_log=False):
         print(f"[Certificate Generation Error] {e}")
         return redirect("certificates:certificate_detail", pk=cert.pk)
 
-    # ---------------- Log activity ----------------
+    # Activity log
     if not skip_log:
         try:
             ActivityLog.objects.create(

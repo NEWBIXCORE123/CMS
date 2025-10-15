@@ -1,32 +1,16 @@
 # certificates/views/certificate_views.py
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
-from certificates.models import Certificate
-from certificates.forms import CertificateForm
-from certificates.decorators import role_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db.models import Q
 
-# Docx / PDF related
-from docxtpl import DocxTemplate, InlineImage
-from docx.shared import Mm
-import qrcode as qrcode
-try:
-    from docx2pdf import convert
-    import pythoncom
-except ImportError:
-    convert = None
-from reportlab.pdfgen import canvas
-
-# Models you are referencing
-from certificates.models import Certificate, ReissueLog, ActivityLog, AdminSignature
-
-# Any other functions if used
-from .document_views import generate_certificate  # if you need to call it from certificate_views
+from certificates.models import Certificate, ReissueLog, ActivityLog
+from certificates.forms import CertificateForm
+from certificates.decorators import role_required
+from .document_views import generate_certificate  # DOCX generation helper
 
 
 # ---------------- CERTIFICATE CRUD ----------------
@@ -53,10 +37,9 @@ def create_certificate(request):
         return JsonResponse({"ok": False, "error": error_message})
 
     try:
-        # Save the form, which triggers the model's save method
         certificate = form.save()
 
-        # Log user activity
+        # Activity log
         try:
             ActivityLog.objects.create(
                 user=request.user,
@@ -68,7 +51,6 @@ def create_certificate(request):
         return JsonResponse({"ok": True, "id": certificate.id})
 
     except ValueError as e:
-        # Handle leap year or other date-related errors
         return JsonResponse({"ok": False, "error": f"Date error: {str(e)}"})
 
 
@@ -80,30 +62,23 @@ def list_certificates(request):
 
     certificates = Certificate.objects.all()
 
-    # Filter by search (name or address)
     if search:
         certificates = certificates.filter(
             Q(full_name__icontains=search) |
             Q(address__icontains=search)
         )
 
-    # Filter by document type
     if document_type:
         certificates = certificates.filter(document_type__iexact=document_type)
 
-    # Filter by status
     if status:
         certificates = certificates.filter(status__iexact=status)
 
-    # Pagination
-    paginator = Paginator(certificates.order_by('-created_at'), 9)  # 9 per page
+    paginator = Paginator(certificates.order_by('-created_at'), 9)
     page_number = request.GET.get('page')
     certificates = paginator.get_page(page_number)
 
-    context = {
-        'certificates': certificates,
-    }
-    return render(request, 'certificates/list_certificates.html', context)
+    return render(request, 'certificates/list_certificates.html', {'certificates': certificates})
 
 
 @login_required
@@ -113,23 +88,25 @@ def certificate_detail(request, pk):
 
 
 @login_required
+@role_required(allowed_roles=["staff", "admin"])
 def reissue_certificate(request, pk):
     cert = get_object_or_404(Certificate, id=pk)
+
     try:
-        # Reissue the certificate using the model's reissue method
+        # Update certificate reissue
         cert.reissue()
 
-        # Log this reissue in the ReissueLog table
+        # Log reissue
         ReissueLog.objects.create(
             certificate=cert,
             reissued_by=request.user,
             remarks=f"Reissued {cert.get_document_type_display()} certificate for {cert.full_name}"
         )
 
-        # Reuse existing certificate generation logic, skipping internal log creation
-        response = generate_certificate(request, pk=cert.pk, skip_log=True)
+        # Regenerate certificate DOCX
+        generate_certificate(request, pk=cert.pk, skip_log=True)
 
-        # Activity Log
+        # Log activity
         ActivityLog.objects.create(
             user=request.user,
             action=f"Reissued {cert.get_document_type_display()} certificate for {cert.full_name}"
@@ -140,11 +117,11 @@ def reissue_certificate(request, pk):
             f"✅ Certificate for {cert.full_name} has been successfully reissued and regenerated."
         )
 
-        return response
+        return redirect("certificates:certificate_detail", pk=cert.pk)
 
     except ValueError as e:
         messages.error(request, f"⚠️ Reissue failed: Date error: {str(e)}")
-        return redirect("certificates:certificate_detail", pk=cert.id)
+        return redirect("certificates:certificate_detail", pk=cert.pk)
     except Exception as e:
         messages.error(request, f"⚠️ Reissue failed: {str(e)}")
-        return redirect("certificates:certificate_detail", pk=cert.id)
+        return redirect("certificates:certificate_detail", pk=cert.pk)
