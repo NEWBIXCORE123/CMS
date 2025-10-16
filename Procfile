@@ -1,1 +1,1 @@
-web: gunicorn brgy_cms.wsgi --log-file -
+web: python create_render_superuser.py && gunicorn brgy_cms.wsgi --log-file -
