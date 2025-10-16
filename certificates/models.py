@@ -172,14 +172,28 @@ class ReissueLog(models.Model):
 # ACTIVITY LOG
 # -------------------------------------------------
 class ActivityLog(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    ACTION_TYPES = [
+        ('login', 'Login'),
+        ('logout', 'Logout'),
+        ('failed', 'Failed'),
+        ('create', 'Create'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    action_type = models.CharField(max_length=20, choices=ACTION_TYPES, default='other')
     action = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def simple_type(self):
+        return self.action_type.capitalize()
 
     def __str__(self):
         if self.user:
             return f"{self.user.username} - {self.action}"
         return f"{self.action}"
+
 
 
 # -------------------------------------------------

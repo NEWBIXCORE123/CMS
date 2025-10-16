@@ -11,6 +11,7 @@ def log_user_login(sender, request, user, **kwargs):
     if user and user.is_authenticated:
         ActivityLog.objects.create(
             user=user,
+            action_type='login',
             action=f"{user.username} logged in"
         )
 
@@ -21,6 +22,7 @@ def log_user_logout(sender, request, user, **kwargs):
     if user and user.is_authenticated:
         ActivityLog.objects.create(
             user=user,
+            action_type='logout',
             action=f"{user.username} logged out"
         )
 
@@ -50,5 +52,6 @@ def log_failed_login(sender, credentials, request, **kwargs):
 
     ActivityLog.objects.create(
         user=user,
+        action_type='failed',
         action=f"Failed login attempt for username: {username}"
     )
