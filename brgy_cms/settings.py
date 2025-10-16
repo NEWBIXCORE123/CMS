@@ -12,7 +12,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------------
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ["*"]  # For Render; restrict later to your domain
+
+# Render domain and localhost allowed
+ALLOWED_HOSTS = ["*"]
+
+# Auto-detect Render environment
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # -------------------------------
 # INSTALLED APPS
@@ -69,7 +76,7 @@ WSGI_APPLICATION = "brgy_cms.wsgi.application"
 # DATABASE
 # -------------------------------
 # ✅ Use SQLite locally, PostgreSQL on Render
-if os.getenv("RENDER"):  # Render sets this automatically
+if RENDER_EXTERNAL_HOSTNAME:
     DATABASES = {
         "default": dj_database_url.config(
             default=os.environ.get("DATABASE_URL"),
@@ -128,3 +135,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/certificates/login/"
 LOGIN_REDIRECT_URL = "/certificates/dashboard/"
 LOGOUT_REDIRECT_URL = "/certificates/login/"
+
+# -------------------------------
+# SECURITY SETTINGS FOR RENDER
+# -------------------------------
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS = ["https://cms-tu5k.onrender.com/"]  # 🔁 replace with your Render domain
