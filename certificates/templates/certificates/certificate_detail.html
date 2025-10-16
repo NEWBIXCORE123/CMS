@@ -63,7 +63,7 @@
 
         <!-- Right: QR Code -->
         <div class="col-lg-5 text-center">
-          {% if cert.verification_token %}
+          {% if cert.generated_docx %}
           <div class="border rounded-3 shadow-sm p-3 bg-light mb-4 qr-box">
             <img src="{% url 'certificates:certificate_qr' cert.verification_token %}" 
                  alt="QR Code" class="img-fluid rounded" style="max-height: 200px;">
