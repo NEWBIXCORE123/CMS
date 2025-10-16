@@ -14,7 +14,11 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # Render domain and localhost allowed
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "cms-tu5k.onrender.com",
+    "127.0.0.1",
+    "localhost",
+]
 
 # Auto-detect Render environment
 RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
