@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-import dj_database_url  # ✅ Add this
+import dj_database_url
 
 # -------------------------------
 # BASE
@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------------
 # SECURITY
 # -------------------------------
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")  # ✅ Revert this
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = ["*"]  # For Render; restrict later to your domain
 
@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "certificates",  # your app
+    "certificates",
 ]
 
 # -------------------------------
@@ -32,7 +32,7 @@ INSTALLED_APPS = [
 # -------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # Must be right after SecurityMiddleware
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -68,14 +68,22 @@ WSGI_APPLICATION = "brgy_cms.wsgi.application"
 # -------------------------------
 # DATABASE
 # -------------------------------
-# ✅ Use PostgreSQL if DATABASE_URL is set (Render), otherwise fallback to SQLite (local)
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+# ✅ Use SQLite locally, PostgreSQL on Render
+if os.getenv("RENDER"):  # Render sets this automatically
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ.get("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # -------------------------------
 # PASSWORD VALIDATION
