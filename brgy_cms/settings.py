@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url  # ✅ Add this
 
 # -------------------------------
 # BASE
@@ -9,9 +10,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------------
 # SECURITY
 # -------------------------------
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")  # ✅ Revert this
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ["*"]  # For Render, can restrict to your domain later
+ALLOWED_HOSTS = ["*"]  # For Render; restrict later to your domain
 
 # -------------------------------
 # INSTALLED APPS
@@ -46,7 +47,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  # global templates folder
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -67,11 +68,13 @@ WSGI_APPLICATION = "brgy_cms.wsgi.application"
 # -------------------------------
 # DATABASE
 # -------------------------------
+# ✅ Use PostgreSQL if DATABASE_URL is set (Render), otherwise fallback to SQLite (local)
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
 
 # -------------------------------
@@ -96,8 +99,7 @@ USE_TZ = True
 # STATIC FILES
 # -------------------------------
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "certificates" / "static"]  # app static files
-STATIC_ROOT = BASE_DIR / "staticfiles"  # collectstatic destination
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # -------------------------------
@@ -118,6 +120,3 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/certificates/login/"
 LOGIN_REDIRECT_URL = "/certificates/dashboard/"
 LOGOUT_REDIRECT_URL = "/certificates/login/"
-
-# brgy_cms/settings.py
-STATICFILES_DIRS = []  # Remove certificates/static/, as it's handled by AppDirectoriesFinder
