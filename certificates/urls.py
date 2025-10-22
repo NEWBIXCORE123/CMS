@@ -22,6 +22,7 @@ from certificates.views import (
 # Split views
 from certificates.views import certificate_views
 from certificates.views import document_views  # contains generate_certificate, certificate_docx, verify_certificate, certificate_qr
+from certificates.views import certificate_verification_views
 
 app_name = "certificates"
 
@@ -58,9 +59,9 @@ urlpatterns = [
     path("activity-logs/", activity_logs, name="activity_logs"),
 
     # ---------------- CERTIFICATE VERIFICATION ----------------
-    path("verify/<uuid:token>/", document_views.verify_certificate, name="verify_certificate"),
-    path("qr/<uuid:token>/", document_views.certificate_qr, name="certificate_qr"),
-    path("check-age/", check_age, name="check_age"),
+    path("verify/<uuid:token>/", certificate_verification_views.verify_certificate, name="verify_certificate"),
+    path("qr/<uuid:token>/", certificate_verification_views.certificate_qr, name="certificate_qr"),
+    path("check-age/", certificate_verification_views.check_age, name="check_age"),
 
     # ---------------- REPORTS & TEMPLATES ----------------
     path("reports/", report_views.reports, name="reports"),
