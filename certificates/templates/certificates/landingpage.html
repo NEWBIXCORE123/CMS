@@ -1,36 +1,68 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <title>Brgy Longos CMS</title>
+
+  <!-- CSS Libraries -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&display=swap" rel="stylesheet">
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Lato:wght@400;500&family=Roboto+Slab:wght@600;700&display=swap" rel="stylesheet">
-
+  <!-- Custom Styles -->
   <style>
     html { scroll-behavior: smooth; }
     body { font-family: 'Lato', sans-serif; margin: 0; padding: 0; }
 
-    /* Theme button */
-    .btn-primary {
-      background-color: #6f42c1 !important;
-      border-color: #6f42c1 !important;
-      font-family: 'Montserrat', sans-serif;
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      background: transparent;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    .navbar.scrolled {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Roboto Slab', serif;
+      font-weight: 700;
+      color: #4a148c;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      pointer-events: none;
+    }
+    .navbar-brand img { height: 40px; width: 40px; object-fit: contain; }
+    .navbar-nav .nav-link {
+      color: #4a148c;
       font-weight: 600;
+      text-transform: uppercase;
+      position: relative;
+      margin: 0 10px;
+      transition: color 0.3s;
     }
-    .btn-primary:hover {
-      background-color: #5b34a3 !important;
-      border-color: #5b34a3 !important;
+    .navbar-nav .nav-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -5px;
+      width: 0%;
+      height: 2px;
+      background-color: #6f42c1;
+      transition: width 0.3s ease;
     }
+    .navbar-nav .nav-link.active::after,
+    .navbar-nav .nav-link:hover::after { width: 100%; }
+    .navbar-nav .nav-link.active { color: #6f42c1; }
 
     /* Hero Section */
     .hero {
@@ -38,347 +70,428 @@
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      background: url("{% static 'images/brgy_staff.jpg' %}") no-repeat center center/cover;
-      background-color: #fff;
-      background-attachment: scroll; /* Ensures background moves with section */
-      padding: 120px 20px 0;
-    }
-
-    .hero-text {
-      max-width: 600px;
-      opacity: 0;
-      transform: translateX(-50px);
-      animation: slideIn 1s ease-out forwards;
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    .hero h1 {
-      text-transform: uppercase;
-      font-family: 'Roboto Slab', serif;
-      font-weight: 700;
-    }
-
-    @keyframes slideIn {
-      to { opacity: 1; transform: translateX(0); }
-    }
-
-    /* Section Headings */
-    section h2 {
+      background: url("{% static 'images/bg.jpg' %}") no-repeat center center/cover;
+      padding: 180px 20px 0;
       position: relative;
-      display: inline-block;
-      padding-bottom: 8px;
-      text-transform: uppercase;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-    section h2::after {
-      content: "";
-      display: block;
-      height: 3px;
-      width: 100%;
-      margin: 6px auto 0;
-    }
-
-    /* Light background sections */
-    .light-section h2 {
-      color: #6f42c1;
-    }
-    .light-section h2::after {
-      background: #6f42c1;
-    }
-
-    /* Dark background sections (animated) */
-    .dark-section {
-      position: relative;
-      color: #fff;
       overflow: hidden;
     }
-    .dark-section::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 30% 30%, #6f42c1, #4a148c, #2a0a56);
-      background-size: 200% 200%;
-      animation: moveGradient 8s ease-in-out infinite;
-      z-index: 0;
-    }
-    @keyframes moveGradient {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-    .dark-section .container {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* About Section */
-    .about-section {
-      padding: 100px 20px;
-    }
-
-    /* Services Section */
-    .services-section {
-      background-color: #f8f9fa;
-      padding: 80px 20px;
-    }
-
-    /* Animated Underline */
-    .service-title {
-      position: relative;
-      display: inline-block;
+    .hero-text {
+      max-width: 560px;
       font-family: 'Roboto Slab', serif;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: #4a148c;
-    }
-    .service-title::after {
-      content: "";
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      width: 0;
-      height: 3px;
-      background-color: #7b34c7;
-      transition: width 0.4s ease, left 0.4s ease;
-    }
-    .service-title:hover::after {
-      width: 100%;
-      left: 0;
-    }
-
-    /* Flip Card Animation */
-    .flip-card {
-      background-color: transparent;
-      perspective: 1000px;
-    }
-    .flip-card-inner {
+      z-index: 2;
       position: relative;
-      width: 100%;
-      min-height: 260px;
-      transition: transform 0.8s;
-      transform-style: preserve-3d;
-      border-radius: 15px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      animation: fadeInLeft 1.2s ease-out;
     }
-    .flip-card:hover .flip-card-inner {
-      transform: rotateY(180deg);
+    .hero-text h1 { color: #311b92; }
+    @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* Hero Certificates */
+    .hero-certificates {
+      position: absolute;
+      right: 8%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 750px;
+      height: 500px;
+      perspective: 2000px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .flip-card-front, .flip-card-back {
+    .collage-slide {
       position: absolute;
       width: 100%;
       height: 100%;
       border-radius: 15px;
+      object-fit: cover;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      transform-origin: center center;
       backface-visibility: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 25px;
+      transition: transform 1.2s cubic-bezier(0.4,0,0.2,1), opacity 1.2s ease-in-out, box-shadow 1.2s ease-in-out;
+      transform-style: preserve-3d;
     }
-    .flip-card-front {
-      background-color: #ede7f6;
-      color: #311b92;
-    }
-    .flip-card-back {
-      background: linear-gradient(135deg, #6f42c1, #9b7eda);
+    .collage-slide.front { transform: translateZ(0) rotate(0deg); opacity: 1; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.35); }
+    .collage-slide.back1 { transform: translateZ(-50px) rotate(-5deg); opacity: 0.8; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.25); }
+    .collage-slide.back2 { transform: translateZ(-100px) rotate(5deg); opacity: 0.6; z-index: 4; box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
+    .collage-slide.back3 { transform: translateZ(-150px) rotate(-10deg); opacity: 0.4; z-index: 3; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+
+    /* Paper Effect */
+    .paper-effect { transition: transform 0.3s ease; transform-origin: center center; will-change: transform; }
+    @keyframes floatPaper { 0%{transform:rotate(-1deg) translateY(0);}25%{transform:rotate(1deg) translateY(-1px);}50%{transform:rotate(-1deg) translateY(-2px);}75%{transform:rotate(1deg) translateY(-1px);}100%{transform:rotate(-1deg) translateY(0);} }
+    .paper-effect:hover { animation: floatPaper 6s ease-in-out infinite; }
+
+    /* About Section */
+    .about-section {
+      background: url("{% static 'images/violet.jpg' %}") no-repeat center center/cover;
+      background-size: cover;
       color: white;
-      transform: rotateY(180deg);
+      position: relative;
+      min-height: 100vh;
+      padding: 120px 20px;
+      margin-bottom: 100px;
     }
-    .flip-card h5 {
+    .about-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 0;
+    }
+    .about-section .container { position: relative; z-index: 1; }
+
+    .section-title {
+      font-family: 'Roboto Slab', serif;
+      font-weight: 700;
+      font-size: 2.5rem;
+      color: #fff;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .about-card {
+      background: rgba(255,255,255,0.95);
+      padding: 25px 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      text-align: center;
+      color: #311b92;
       font-family: 'Roboto Slab', serif;
     }
+    .about-card:hover { transform: translateY(-5px) rotate(-1deg); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
+    .about-card .icon { font-size: 2.5rem; color: #6f42c1; margin-bottom: 15px; animation: floatIcon 3s ease-in-out infinite; }
+    @keyframes floatIcon {0%, 20%, 50%, 80%, 100% { transform: translateY(0); }40% { transform: translateY(-8px); }60% { transform: translateY(-4px); }}
+    .about-card .card-title { font-weight: 700; margin-bottom: 10px; color: #311b92; text-transform: uppercase; }
+    .about-card p { text-transform: uppercase; }
 
     /* Contact Section */
     .contact-section {
-      padding: 80px 20px;
+      background: url("{% static 'images/violet.jpg' %}") no-repeat center center/cover;
+      background-size: cover;
+      color: white;
+      position: relative;
+      min-height: 100vh;
+      padding: 120px 20px;
+      font-family: 'Roboto Slab', serif;
+    }
+    .contact-section::before { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 0; }
+    .contact-section .container { position: relative; z-index: 1; }
+    .contact-section h2 { text-transform: uppercase; font-weight: 700; color: #fff; margin-bottom: 50px; }
+    .contact-card {
+      background: rgba(255,255,255,0.95);
+      padding: 25px 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
       text-align: center;
+      color: #311b92;
+      font-family: 'Roboto Slab', serif;
+      margin-bottom: 30px;
     }
+    .contact-card:hover { transform: translateY(-5px) rotate(-1deg); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
+    .contact-card i { font-size: 3rem; color: #6f42c1; margin-bottom: 15px; display:block; transition: transform 0.3s ease, color 0.3s ease; }
+    .contact-card:hover i { transform: translateY(-5px) rotate(5deg); color: #4a148c; }
 
-    /* ICON ANIMATION */
-    .contact-icons a {
-      font-size: 40px;
-      margin: 0 15px;
-      color: #fff;
+    .contact-icons a.social-btn {
       display: inline-block;
-      animation: floatIcon 3s ease-in-out infinite;
-      transition: transform 0.3s ease, color 0.3s ease, text-shadow 0.3s ease;
+      font-size: 1.5rem;
+      margin: 0 12px;
+      color: #6f42c1;
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
     }
+    .contact-icons a.social-btn:hover { transform: scale(1.2) rotate(10deg); color: #4a148c; }
 
-    .contact-icons a:nth-child(2) {
-      animation-delay: 0.5s;
-    }
-    .contact-icons a:nth-child(3) {
-      animation-delay: 1s;
-    }
+    .visit-us-card i { font-size: 3rem; color: #6f42c1; margin-bottom: 15px; display: block; z-index: 2; position: relative; animation: bounceIcon 2s infinite; }
+    .visit-us-card h5, .visit-us-card p { position: relative; z-index: 2; color: #311b92; transition: color 0.3s ease; }
+    .visit-us-card .visit-bg { content: ""; position: absolute; inset: 0; opacity: 0; transition: all 0.3s ease; z-index: 1; filter: blur(3px); background-size: cover; background-position: center; }
+    .visit-us .visit-bg { background: url("{% static 'images/login_bg.jpg' %}") center/cover no-repeat; }
+    .visit-email .visit-bg { background: url("{% static 'images/email.jpg' %}") center/cover no-repeat; }
+    .visit-phone .visit-bg { background: url("{% static 'images/phone.jpg' %}") center/cover no-repeat; }
+    .visit-us-card:hover { background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+    .visit-us-card:hover .visit-bg { opacity: 1; }
+    .visit-us-card:hover i, .visit-us-card:hover h5, .visit-us-card:hover p { color: #fff; }
+    @keyframes bounceIcon { 0%,20%,50%,80%,100%{transform:translateY(0);}40%{transform:translateY(-12px);}60%{transform:translateY(-6px);} }
 
-    @keyframes floatIcon {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
+    .btn-violet { background-color:#4a148c; border-color:#4a148c; color:#fff; transition: background 0.3s, transform 0.3s; }
+    .btn-violet:hover { background-color:#6f42c1; transform: translateY(-2px); }
 
-    .contact-icons a:hover {
-      transform: scale(1.25) rotate(8deg);
-      color: #ffeb3b;
-      text-shadow: 0 0 15px rgba(255, 235, 59, 0.8);
+    /* Services Section */
+    #services .section-title { color: #311b92; font-weight: 800; }
+    .services-section .container { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+    .service-item {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+      gap: 30px;
+      justify-content: flex-start;
+      margin-bottom: 50px;
     }
+    .service-item.flex-row-reverse { flex-direction: row-reverse; }
+    .service-icon-circle {
+      width: 150px; height: 150px; border-radius: 50%;
+      background-color: #ede7f6;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: #4a148c;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      flex-shrink: 0;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+    .service-icon-circle:hover { transform: scale(1.1) rotate(5deg); background-color: #d1c4e9; box-shadow: 0 10px 25px rgba(0,0,0,0.25); }
+    .service-text { max-width: 900px; text-align: justify; }
+    .service-text h4.service-title { color: #311b92; font-size: 1.7rem; font-weight: 900; margin-bottom: 15px; text-align: center; }
+    .service-text p { color: #311b92; font-size: 1rem; line-height: 1.8; margin-bottom: 10px; }
 
-    /* MOBILE VIEW */
+    /* Mobile Responsive for Services */
     @media (max-width: 992px) {
-      .hero {
-          height: auto;
-          min-height: 70vh;
-          padding: 80px 15px 40px;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-start;
-          text-align: center;
-          background-size: cover;
-          background-position: center top;
-      }
+      .service-item { flex-direction: column !important; text-align: center; }
+      .service-text { max-width: 100%; }
+      .service-icon-circle { margin: 0 auto 20px auto; }
+    }
 
-      .hero-text {
-          max-width: 100%;
-          transform: translateX(0);
+    /* Hero and About mobile adjustments */
+    @media (max-width: 992px) {
+      .hero { padding: 0px 15px 0; align-items: center; }
+      .hero-text { text-align: center; max-width: 100%; animation: none; margin-bottom: 70px;}
+      .hero-certificates {
+        position: absolute;
+        top: auto;
+        bottom: 50px;
+        right: 50%;
+        transform: translateX(50%);
+        width: 300px;
+        height: 200px;
       }
-
-      .hero h1 {
-          font-size: 2rem;
-          line-height: 1.2;
-      }
-
-      .hero p {
-          font-size: 1rem;
-      }
-
-      .btn-primary.btn-lg {
-          padding: 0.5rem 1.5rem;
-          font-size: 0.9rem;
-      }
+      .collage-slide { width: 100%; height: 100%; }
     }
 
     @media (max-width: 576px) {
-      .hero {
-          min-height: 60vh;
-          padding: 60px 10px 30px;
-      }
+      .about-card, .contact-card { margin: 0 auto 20px auto; }
+      .hero-text h1 { font-size: 1.6rem; }
+      .hero-text p { font-size: 1rem; }
+    }
 
-      .hero h1 {
-          font-size: 1.5rem;
-          line-height: 1.1;
-      }
-
-      .hero p {
-          font-size: 0.85rem;
-      }
-
-      .btn-primary.btn-lg {
-          padding: 0.45rem 1.2rem;
-          font-size: 0.8rem;
+    /* Mobile Hamburger */
+    @media (max-width: 992px) {
+      .navbar-collapse { background-color: #4a148c; padding: 20px 10px; border-radius: 10px; margin-top: 10px; }
+      .navbar-collapse .nav-link { color: #fff; font-size: 1.2rem; padding: 12px 10px; margin: 5px 0; text-align: center; border-radius: 8px; transition: background 0.3s, transform 0.3s; }
+      .navbar-collapse .nav-link:hover, .navbar-collapse .nav-link.active { background-color: #6f42c1; transform: translateY(-2px); color: #fff; }
+      .navbar-toggler { border: 2px solid #4a148c; border-radius: 8px; padding: 5px; }
+      .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='%234a148c' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="container">
-      <div class="hero-text">
-        <h1 class="fw-bold mb-3">WELCOME TO BRGY LONGOS CERTIFICATE MANAGEMENT SYSTEM</h1>
-        <p class="lead mb-4">Automation of public service for faster certificate processing.</p>
-        <a href="{% url 'certificates:login' %}" class="btn btn-primary btn-lg">Get Started</a>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <div class="navbar-brand"><img src="{% static 'images/logo.png' %}" alt="Logo"> BRGY LONGOS CMS</div>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section id="home" class="hero">
+  <div class="container">
+    <div class="hero-text">
+      <h1 class="fw-bold mb-3">WELCOME TO BRGY LONGOS CERTIFICATE MANAGEMENT SYSTEM</h1>
+      <p class="lead mb-4">Automation of public service for faster certificate processing.</p>
+      <a href="{% url 'certificates:login' %}" class="btn btn-violet btn-lg">Get Started</a>
+    </div>
+  </div>
+  <div class="hero-certificates">
+    <img src="{% static 'images/certificate.jpg' %}" alt="Certificate 1" class="collage-slide front paper-effect">
+    <img src="{% static 'images/captain.jpg' %}" alt="Certificate 2" class="collage-slide back1 paper-effect">
+    <img src="{% static 'images/login_bg.jpg' %}" alt="Certificate 3" class="collage-slide back2 paper-effect">
+    <img src="{% static 'images/secretary.jpg' %}" alt="Certificate 4" class="collage-slide back3 paper-effect">
+  </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about-section text-center" data-aos="fade-up">
+  <div class="container">
+    <h2 class="section-title mb-5">About Us</h2>
+    <p class="lead mb-5">The Barangay Longos Certificate Management System provides a simplified and efficient method for residents to request official certificates. Our platform ensures accuracy, speed, and transparency in public service.</p>
+    <div class="row justify-content-center g-4">
+      <div class="col-md-5">
+        <div class="about-card paper-effect">
+          <div class="icon"><i class="fas fa-bolt"></i></div>
+          <h4 class="card-title">Fast Processing</h4>
+          <p>Certificate requests are processed promptly to reduce waiting time for residents.</p>
+        </div>
       </div>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section id="about" class="about-section dark-section text-center" data-aos="fade-up">
-    <div class="container">
-      <h2 class="mb-4">About Us</h2>
-      <p class="lead">
-        The Barangay Longos Certificate Management System is designed to simplify and speed up the
-        process of generating certificates for our residents. Our goal is to provide efficient and transparent
-        services while reducing manual paperwork.
-      </p>
-    </div>
-  </section>
-
-  <!-- Services Section -->
-  <section id="services" class="services-section text-center">
-    <div class="container" data-aos="fade-up">
-      <h2 class="mb-5 service-title">Our Services</h2>
-      <div class="row g-4 justify-content-center">
-        <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
-          <div class="flip-card">
-            <div class="flip-card-inner">
-              <div class="flip-card-front p-4">
-                <h5 class="fw-bold mb-3">Certificate of Clearance</h5>
-                <p>Fast and secure issuance of clearance certificates for various legal and employment needs.</p>
-              </div>
-              <div class="flip-card-back p-4">
-                <h5 class="fw-bold mb-2">Certificate of Clearance</h5>
-                <p>Get your Barangay Clearance efficiently — perfect for job applications, travel, or legal use.</p>
-              </div>
-            </div>
-          </div>
+      <div class="col-md-5">
+        <div class="about-card paper-effect">
+          <div class="icon"><i class="fas fa-shield-alt"></i></div>
+          <h4 class="card-title">Data Security</h4>
+          <p>All resident information is securely stored and handled according to privacy standards.</p>
         </div>
-
-        <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
-          <div class="flip-card">
-            <div class="flip-card-inner">
-              <div class="flip-card-front p-4">
-                <h5 class="fw-bold mb-3">Residency Certificates</h5>
-                <p>Proof of residency issued quickly to assist in government and private transactions.</p>
-              </div>
-              <div class="flip-card-back p-4">
-                <h5 class="fw-bold mb-2">Residency Certificates</h5>
-                <p>Digitally verified certificate confirming your residence in Barangay Longos.</p>
-              </div>
-            </div>
-          </div>
+      </div>
+      <div class="col-md-5">
+        <div class="about-card paper-effect">
+          <div class="icon"><i class="fas fa-users"></i></div>
+          <h4 class="card-title">Transparency</h4>
+          <p>Residents can rely on clear, verifiable certificate processing at the Barangay office.</p>
         </div>
-
-        <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
-          <div class="flip-card">
-            <div class="flip-card-inner">
-              <div class="flip-card-front p-4">
-                <h5 class="fw-bold mb-3">Indigency Certificates</h5>
-                <p>Support residents by providing indigency certificates for medical, educational, or financial aid.</p>
-              </div>
-              <div class="flip-card-back p-4">
-                <h5 class="fw-bold mb-2">Indigency Certificates</h5>
-                <p>Streamlined request for indigency verification with full transparency and convenience.</p>
-              </div>
-            </div>
-          </div>
+      </div>
+      <div class="col-md-5">
+        <div class="about-card paper-effect">
+          <div class="icon"><i class="fas fa-hand-holding-heart"></i></div>
+          <h4 class="card-title">Reduced Manual Work</h4>
+          <p>Automated processes minimize paperwork and improve staff efficiency.</p>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Contact Section -->
-  <section id="contact" class="contact-section dark-section" data-aos="fade-up">
-    <div class="container">
-      <h2 class="mb-5">Contact Us</h2>
-      <div class="contact-icons">
-        <a href="#"><i class="fab fa-facebook"></i></a>
-        <a href="#"><i class="fab fa-instagram"></i></a>
-        <a href="#"><i class="fab fa-github"></i></a>
+<!-- Services Section -->
+<section id="services" class="services-section text-center" data-aos="fade-up">
+  <div class="container">
+    <h2 class="section-title mb-5">Our Services</h2>
+
+    <div class="service-item" data-aos="fade-up" data-aos-delay="100">
+      <div class="service-icon-circle"><i class="fas fa-file-alt"></i></div>
+      <div class="service-text">
+        <h4 class="service-title">CERTIFICATE OF CLEARANCE</h4>
+        <p>Quick issuance of certificates for legal, work, or government purposes.</p>
+        <p>All certificates are verified and comply with local rules.</p>
+        <p>Residents can track their status online to save time.</p>
       </div>
     </div>
-  </section>
 
-  <!-- JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>
-    AOS.init({
-      duration: 1000,
-      once: true
+    <div class="service-item flex-row-reverse" data-aos="fade-up" data-aos-delay="200">
+      <div class="service-icon-circle"><i class="fas fa-home"></i></div>
+      <div class="service-text">
+        <h4 class="service-title">RESIDENCY CERTIFICATES</h4>
+        <p>Proof of residence for school, work, or emergencies.</p>
+        <p>Data is securely stored in our digital system.</p>
+        <p>Quick and clear process ensures minimal waiting.</p>
+      </div>
+    </div>
+
+    <div class="service-item" data-aos="fade-up" data-aos-delay="300">
+      <div class="service-icon-circle"><i class="fas fa-hand-holding-usd"></i></div>
+      <div class="service-text">
+        <h4 class="service-title">INDIGENCY CERTIFICATES</h4>
+        <p>Support for residents needing aid or verification for programs.</p>
+        <p>Accurate documentation for government services is provided.</p>
+        <p>Staff ensures quick processing while keeping information private.</p>
+      </div>
+    </div>
+
+    <div class="service-item flex-row-reverse" data-aos="fade-up" data-aos-delay="400">
+      <div class="service-icon-circle"><i class="fas fa-bullseye"></i></div>
+      <div class="service-text">
+        <h4 class="service-title">OUR MISSION</h4>
+        <p>Provide fast, secure, and clear certificate services for all residents.</p>
+        <p>Reduce bureaucracy and improve response time for everyone.</p>
+        <p>Ensure residents can rely on our system for official documents safely.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="contact-section" data-aos="fade-up">
+  <div class="container text-center">
+    <h2>CONTACT US</h2>
+    <p class="lead mb-4">Reach out to us for inquiries, assistance, or suggestions.</p>
+    <div class="row justify-content-center g-4">
+      <div class="col-md-3">
+        <div class="contact-card paper-effect visit-us-card visit-us">
+          <div class="visit-bg"></div>
+          <i class="fas fa-map-marker-alt"></i>
+          <h5>VISIT US</h5>
+          <p>Longos Barangay Hall</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="contact-card paper-effect visit-us-card visit-email">
+          <div class="visit-bg"></div>
+          <i class="fas fa-envelope"></i>
+          <h5>EMAIL</h5>
+          <p>brgylongos2020@gmail.com</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="contact-card paper-effect visit-us-card visit-phone">
+          <div class="visit-bg"></div>
+          <i class="fas fa-phone"></i>
+          <h5>CALL US</h5>
+          <p>8244-1273 </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-icons mt-4">
+      <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+      <a href="#" class="social-btn"><i class="fab fa-github"></i></a>
+    </div>
+    <p class="mt-4">Send us a message through our official Facebook page or visit our office.</p>
+  </div>
+</section>
+
+<!-- JS Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<!-- Custom JS -->
+<script>
+  AOS.init({ duration: 1000, once: true });
+
+  // Navbar scroll effect & active link highlighting
+  window.addEventListener("scroll", function() {
+    const navbar = document.querySelector(".navbar");
+    navbar.classList.toggle("scrolled", window.scrollY > 50);
+
+    let sections = document.querySelectorAll("section");
+    let links = document.querySelectorAll(".nav-link");
+    sections.forEach(sec => {
+      let top = window.scrollY;
+      let offset = sec.offsetTop - 150;
+      let height = sec.offsetHeight;
+      let id = sec.getAttribute("id");
+      if (top >= offset && top < offset + height) {
+        links.forEach(link => link.classList.remove("active"));
+        document.querySelector(".nav-link[href*=" + id + "]").classList.add("active");
+      }
     });
-  </script>
+  });
+
+  // Hero collage slide animation
+  const slides = document.querySelectorAll('.collage-slide');
+  let current = 0;
+  function flipSlides() {
+    slides.forEach(slide => slide.classList.remove('front','back1','back2','back3'));
+    slides[current].classList.add('front');
+    slides[(current+1)%slides.length].classList.add('back1');
+    slides[(current+2)%slides.length].classList.add('back2');
+    slides[(current+3)%slides.length].classList.add('back3');
+    current = (current + 1) % slides.length;
+  }
+  flipSlides();
+  setInterval(flipSlides, 3000);
+</script>
+
 </body>
 </html>
