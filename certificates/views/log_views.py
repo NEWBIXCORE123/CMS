@@ -4,85 +4,82 @@ from django.db.models import Count
 from django.shortcuts import render
 from certificates.models import ActivityLog
 
+
 @login_required
 def activity_logs(request):
-    from django.core.paginator import Paginator
-    from django.db.models import Count
+    logs_qs = ActivityLog.objects.select_related("user").order_by("-created_at")
 
-    logs_qs = ActivityLog.objects.order_by('-created_at')
-
-    search = request.GET.get('search', '').strip().lower()
-    date = request.GET.get('date', '').strip()
-    log_type = request.GET.get('type', '').strip().lower()
+    search = request.GET.get("search", "").strip().lower()
+    date = request.GET.get("date", "").strip()
+    log_type = request.GET.get("type", "").strip().lower()
 
     filtered_logs = []
 
+    # Helper to classify each log type
+    def classify_action(action_text: str) -> str:
+        text = (action_text or "").lower()
+        if "failed login attempt" in text:
+            return "Failed"
+        elif "logged out" in text or "logout" in text:
+            return "Logout"
+        elif "logged in" in text or "login" in text:
+            return "Login"
+        elif "reissued" in text or "reissue" in text:
+            return "Reissue"
+        elif any(k in text for k in ["create", "created", "added", "generated", "new"]):
+            return "Create"
+        else:
+            return "Other"
+
     for log in logs_qs:
-        action_lower = (log.action or "").lower()
+        stype = classify_action(log.action)
 
-        # Filter by log_type (dropdown)
-        if log_type:
-            type_map = {'security': 'failed'}
-            mapped_type = type_map.get(log_type, log_type)
-            # Use template filter instead of setting attribute
-            stype = "Other"
-            if "failed login attempt" in action_lower:
-                stype = "Failed"
-            elif "logout" in action_lower:
-                stype = "Logout"
-            elif "login" in action_lower:
-                stype = "Login"
-            elif any(k in action_lower for k in ["create", "created", "added", "generated", "new"]):
-                stype = "Create"
-            if stype.lower() != mapped_type:
-                continue
+        # ✅ Dropdown filter
+        if log_type and stype.lower() != log_type:
+            continue
 
-        # Filter by search
+        # ✅ Search filter
         if search:
-            if search in ["login", "logout", "failed", "create", "other"]:
-                stype = "Other"
-                if "failed login attempt" in action_lower:
-                    stype = "Failed"
-                elif "logout" in action_lower:
-                    stype = "Logout"
-                elif "login" in action_lower:
-                    stype = "Login"
-                elif any(k in action_lower for k in ["create", "created", "added", "generated", "new"]):
-                    stype = "Create"
+            # Search by type keywords (login, logout, failed, etc.)
+            if search in ["login", "logout", "failed", "create", "reissue", "other"]:
                 if stype.lower() != search:
                     continue
             else:
-                if not (
-                    search in action_lower
-                    or (log.user and search in log.user.username.lower())
-                    or (log.user and log.user.first_name and search in log.user.first_name.lower())
-                    or (log.user and log.user.last_name and search in log.user.last_name.lower())
-                ):
+                # Search text in action, username, or name
+                user_match = (
+                    (log.user and search in (log.user.username or "").lower())
+                    or (log.user and search in (log.user.first_name or "").lower())
+                    or (log.user and search in (log.user.last_name or "").lower())
+                )
+                if not (search in (log.action or "").lower() or user_match):
                     continue
 
-        # Filter by date
+        # ✅ Date filter
         if date and log.created_at.date().isoformat() != date:
             continue
 
         filtered_logs.append(log)
 
     paginator = Paginator(filtered_logs, 9)
-    page_number = request.GET.get('page') or 1
+    page_number = request.GET.get("page") or 1
     logs = paginator.get_page(page_number)
 
-    # Failed login counts
+    # Failed login attempt counter
     failed_counts = (
-        ActivityLog.objects
-        .filter(action__icontains="failed login attempt")
-        .values('user__username')
-        .annotate(failed_times=Count('id'))
+        ActivityLog.objects.filter(action__icontains="failed login attempt")
+        .values("user__username")
+        .annotate(failed_times=Count("id"))
     )
-    failed_dict = {f['user__username'] or 'Anonymous': f['failed_times'] for f in failed_counts}
+    failed_dict = {f["user__username"] or "Anonymous": f["failed_times"] for f in failed_counts}
 
-    return render(request, "certificates/activity_logs.html", {
-        "logs": logs,
-        "failed_dict": failed_dict,
-        "search": search,
-        "date": date,
-        "log_type": log_type,
-    })
+    return render(
+        request,
+        "certificates/activity_logs.html",
+        {
+            "logs": logs,
+            "failed_dict": failed_dict,
+            "search": search,
+            "date": date,
+            "log_type": log_type,
+        },
+    )
